@@ -1,22 +1,18 @@
+// dataNascimento não é só pra mostrar idade é a partir dela que calculamos quando cada vacina deveria ser tomada.
+
 export interface Crianca {
   id: string;
   nome: string;
-  dataNascimento: string; // ISO 8601 (yyyy-MM-dd) — facilita serialização e comparação de datas
-  responsavelId: string; // FK -> Responsavel.id
-  foto?: string; // URL ou base64 do avatar; usado no seletor visual (Cenário 4)
+  cpf: string; // só números, sem pontuação - necessário pra cadastrar a criança pra tomar vacina
+  dataNascimento: string; // yyyy-MM-dd
+  responsavelId: string;
+  foto?: string;
   sexo?: 'F' | 'M' | 'NAO_INFORMADO';
 }
 
-/**
- * Payload usado para criar/editar uma criança.
- */
 export type CriancaForm = Omit<Crianca, 'id'>;
 
-/**
- * Função para calcular a idade em meses completos
- * a partir da data de nascimento. Usada tanto para exibição quanto
- * para decidir quais vacinas já "venceram" o prazo recomendado.
- */
+// Idade em meses completos, usada pra cruzar com a idade recomendada das vacinas.
 export function calcularIdadeEmMeses(dataNascimento: string, dataReferencia: Date = new Date()): number {
   const nascimento = new Date(dataNascimento);
   let meses =

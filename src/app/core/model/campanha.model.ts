@@ -1,23 +1,19 @@
+// Campanha é independente das crianças cadastradas, não tem chave estrangeira obrigatória,
+// é informação pública (like: campanha de gripe).
+
 export interface Campanha {
   id: string;
   titulo: string;
   descricao: string;
   publicoAlvo: string; // ex.: "0 a 5 anos"
-  dataInicio: string; // ISO 8601
-  dataFim: string; // ISO 8601
-  vacinaRelacionadaId?: string; // FK opcional -> Vacina.id
+  dataInicio: string;
+  dataFim: string;
+  vacinaRelacionadaId?: string;
 }
 
-/**
- * Payload usado para criar/editar uma campanha.
- */
 export type CampanhaForm = Omit<Campanha, 'id'>;
 
-/**
- * Indica se uma campanha está ativa na data de referência (hoje, por
- * padrão). Útil para o Cenário 3 do desafio ("campanha ativa para
- * determinado público infantil").
- */
+// Diz se a campanha está rolando hoje ou na data passada.
 export function campanhaEstaAtiva(campanha: Pick<Campanha, 'dataInicio' | 'dataFim'>, dataReferencia: Date = new Date()): boolean {
   const inicio = new Date(campanha.dataInicio);
   const fim = new Date(campanha.dataFim);

@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/criancas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">Campanhas de vacinação</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="campanhas-content">
+  <div class="pagina">
+    @if ((campanhasOrdenadas$ | async); as campanhas) {
+      @if (campanhas.length === 0) {
+        <div class="estado-vazio">
+          <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+          <p>Nenhuma campanha cadastrada no momento.</p>
+        </div>
+      } @else {
+        <div class="lista-campanhas">
+          @for (campanha of campanhas; track campanha.id) {
+            <article class="card-campanha" [class.card-campanha--ativa]="estaAtiva(campanha)">
+              <div class="card-campanha-icone">
+                <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="card-campanha-corpo">
+                <div class="card-campanha-topo">
+                  <h2>{{ campanha.titulo }}</h2>
+                  @if (estaAtiva(campanha)) {
+                    <span class="selo-ativa">Ativa agora</span>
+                  }
+                </div>
+                <p class="card-campanha-descricao">{{ campanha.descricao }}</p>
+                <div class="card-campanha-meta">
+                  <span class="meta-item">
+                    <ion-icon name="calendar-clear-outline" aria-hidden="true"></ion-icon>
+                    {{ formatarPeriodo(campanha.dataInicio, campanha.dataFim) }}
+                  </span>
+                  <span class="meta-item">{{ campanha.publicoAlvo }}</span>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,237 @@
+.lista-content {
+  --background: var(--ion-color-light);
+}
+
+.pagina {
+  padding: 1rem 1rem 6rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+// ---------------------------------------------------------------------------
+// Campanhas ativas (Cenário 3)
+// ---------------------------------------------------------------------------
+.bloco-campanhas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-campanha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: color-mix(in srgb, var(--ion-color-secondary) 22%, white);
+  border: 1px solid color-mix(in srgb, var(--ion-color-secondary) 45%, white);
+  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: inherit;
+
+  ion-icon:first-child {
+    font-size: 1.4rem;
+    color: var(--ion-color-secondary-contrast);
+    flex-shrink: 0;
+  }
+
+  .seta {
+    margin-left: auto;
+    color: var(--ion-color-secondary-contrast);
+    opacity: 0.6;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.card-campanha-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+
+  strong {
+    font-size: 0.92rem;
+    color: var(--ion-color-dark);
+  }
+
+  span {
+    font-size: 0.78rem;
+    color: var(--ion-color-medium-shade);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Título da seção
+// ---------------------------------------------------------------------------
+.titulo-secao {
+  font-size: 1.3rem;
+  color: var(--ion-color-dark);
+  margin: 0.5rem 0 1rem;
+}
+
+// ---------------------------------------------------------------------------
+// Grid de crianças — 1 coluna no mobile, mais colunas conforme a tela cresce.
+// Cada criança isolada no próprio card é o que resolve o Cenário 4 (não
+// misturar histórico entre irmãos): nada de duas crianças dividindo um
+// mesmo bloco visual.
+// ---------------------------------------------------------------------------
+.grid-criancas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+.card-crianca {
+  display: block;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(71, 60, 51, 0.06);
+  border: 1px solid #efeae0;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 4px 14px rgba(71, 60, 51, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.card-crianca-topo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--app-font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary);
+  flex-shrink: 0;
+
+  &[data-sexo='F'] {
+    background: var(--ion-color-tertiary);
+    color: var(--ion-color-tertiary-contrast);
+  }
+}
+
+.card-crianca-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    font-size: 1rem;
+    color: var(--ion-color-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium-shade);
+  }
+}
+
+.seta {
+  color: var(--ion-color-medium);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.badge-pendencia {
+  margin-bottom: 0.65rem;
+}
+
+.progresso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progresso-barra {
+  height: 0.4rem;
+  background: #efeae0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progresso-preenchido {
+  height: 100%;
+  background: var(--ion-color-primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progresso-texto {
+  font-size: 0.78rem;
+  color: var(--ion-color-medium-shade);
+}
+
+// ---------------------------------------------------------------------------
+// Estado vazio
+// ---------------------------------------------------------------------------
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  background: #ffffff;
+  border: 1px dashed #ddd5c5;
+  border-radius: 1rem;
+
+  ion-icon {
+    font-size: 2rem;
+    color: var(--ion-color-primary);
+  }
+
+  p {
+    color: var(--ion-color-medium-shade);
+    margin: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Responsividade
+// ---------------------------------------------------------------------------
+@media (min-width: 640px) {
+  .grid-criancas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .pagina {
+    padding: 1.5rem 2rem 6rem;
+  }
+
+  .grid-criancas {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,0 +1,120 @@
+.campanhas-content {
+  --background: var(--ion-color-light);
+}
+
+.pagina {
+  padding: 0.5rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.lista-campanhas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.card-campanha {
+  display: flex;
+  gap: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #efeae0;
+  border-radius: 1rem;
+  padding: 1rem;
+
+  &--ativa {
+    border-color: color-mix(in srgb, var(--ion-color-secondary) 55%, white);
+    background: color-mix(in srgb, var(--ion-color-secondary) 10%, white);
+  }
+}
+
+.card-campanha-icone {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--ion-color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.3rem;
+    color: var(--ion-color-secondary-contrast);
+  }
+}
+
+.card-campanha-corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-campanha-topo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+
+  h2 {
+    font-size: 1rem;
+    margin: 0;
+    color: var(--ion-color-dark);
+    font-family: var(--app-font-heading);
+  }
+}
+
+.selo-ativa {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ion-color-secondary-contrast);
+  background: var(--ion-color-secondary);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.card-campanha-descricao {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium-shade);
+  line-height: 1.5;
+  margin: 0 0 0.6rem;
+}
+
+.card-campanha-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.76rem;
+  color: var(--ion-color-medium);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  color: var(--ion-color-medium-shade);
+
+  ion-icon {
+    font-size: 2rem;
+    color: var(--ion-color-secondary);
+  }
+
+  p {
+    margin: 0;
+  }
+}

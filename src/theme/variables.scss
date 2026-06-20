@@ -1,2 +1,114 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// ============================================================================
+// Tema da marca — Desafio Cyrrus (Vacinação Infantil)
+// ----------------------------------------------------------------------------
+// Paleta obrigatória do desafio: #ABC270, #FEC868, #FDA769, #473C33.
+// Mapeamos cada uma para um papel semântico do Ionic em vez de usá-las soltas
+// pela aplicação, assim qualquer tela que use ion-color="primary" (botão,
+// badge, ícone etc.) já nasce na cor certa, sem precisar repetir hex em cada
+// componente.
+//
+//   primary   (#ABC270, verde-oliva) -> ações principais, "em dia"/aplicada
+//   secondary (#FEC868, amarelo mel) -> destaques, campanhas, atenção leve
+//   tertiary  (#FDA769, laranja)     -> alertas/pendências, "atrasada"
+//   marrom-escuro (#473C33)          -> não é warning nem danger do Ionic;
+//                                        é a cor de texto/contraste da marca,
+//                                        por isso vira --ion-text-color e a
+//                                        cor "dark" customizada, em vez de
+//                                        forçá-la num papel que não é dela.
+//
+// Shade/tint de cada cor foram calculados (não chutados) a partir do hex
+// base, e o par contrast/contrast-rgb foi escolhido pelo maior contraste
+// WCAG entre preto e branco — ambas as cores claras (#ABC270, #FEC868,
+// #FDA769) só passam no contraste mínimo com texto preto, nunca branco.
+// ============================================================================
+
+:root {
+  /** primary — verde-oliva, ação principal **/
+  --ion-color-primary: #ABC270;
+  --ion-color-primary-rgb: 171, 194, 112;
+  --ion-color-primary-contrast: #2b2710;
+  --ion-color-primary-contrast-rgb: 43, 39, 16;
+  --ion-color-primary-shade: #96aa62;
+  --ion-color-primary-tint: #b3c87e;
+
+  /** secondary — amarelo mel, destaque/campanha **/
+  --ion-color-secondary: #FEC868;
+  --ion-color-secondary-rgb: 254, 200, 104;
+  --ion-color-secondary-contrast: #473300;
+  --ion-color-secondary-contrast-rgb: 71, 51, 0;
+  --ion-color-secondary-shade: #dfb05b;
+  --ion-color-secondary-tint: #fecd77;
+
+  /** tertiary — laranja, alerta/pendência **/
+  --ion-color-tertiary: #FDA769;
+  --ion-color-tertiary-rgb: 253, 167, 105;
+  --ion-color-tertiary-contrast: #45230a;
+  --ion-color-tertiary-contrast-rgb: 69, 35, 10;
+  --ion-color-tertiary-shade: #de925c;
+  --ion-color-tertiary-tint: #fdaf78;
+
+  /** success — vacina aplicada (reaproveita o verde da marca) **/
+  --ion-color-success: #ABC270;
+  --ion-color-success-rgb: 171, 194, 112;
+  --ion-color-success-contrast: #2b2710;
+  --ion-color-success-contrast-rgb: 43, 39, 16;
+  --ion-color-success-shade: #96aa62;
+  --ion-color-success-tint: #b3c87e;
+
+  /** warning — vacina próxima do prazo (reaproveita o amarelo da marca) **/
+  --ion-color-warning: #FEC868;
+  --ion-color-warning-rgb: 254, 200, 104;
+  --ion-color-warning-contrast: #473300;
+  --ion-color-warning-contrast-rgb: 71, 51, 0;
+  --ion-color-warning-shade: #dfb05b;
+  --ion-color-warning-tint: #fecd77;
+
+  /** danger — existe pra qualquer ion-* que use color="danger" por padrão
+      (ex.: ion-alert de confirmação de exclusão), mas a UI de status da
+      vacina (Aplicada/Em dia/Atrasada/Futura) NÃO deve usar danger/warning/
+      success do Ionic. Ela usa STATUS_VACINA_CONFIG diretamente (ver
+      core/model/enum/status-vacina.enum.ts), que já é a fonte única da
+      verdade pra cor de cada status — evita ter a mesma informação
+      (qual cor representa "atrasada") decidida em dois lugares diferentes. **/
+  --ion-color-danger: #FDA769;
+  --ion-color-danger-rgb: 253, 167, 105;
+  --ion-color-danger-contrast: #45230a;
+  --ion-color-danger-contrast-rgb: 69, 35, 10;
+  --ion-color-danger-shade: #de925c;
+  --ion-color-danger-tint: #fdaf78;
+
+  /** dark — marrom da marca, usado em textos de maior ênfase, headers
+      escuros e como cor "dark" customizada disponível como ion-color="dark" **/
+  --ion-color-dark: #473C33;
+  --ion-color-dark-rgb: 71, 60, 51;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #3e342c;
+  --ion-color-dark-tint: #594f47;
+
+  /** medium — tom neutro derivado do marrom da marca (não um cinza genérico) **/
+  --ion-color-medium: #8a7d70;
+  --ion-color-medium-rgb: 138, 125, 112;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #796e62;
+  --ion-color-medium-tint: #968a7e;
+
+  /** light — fundo quase-branco com leve calor, combina com o marrom da
+      marca melhor que um branco/cinza puro de SaaS genérico **/
+  --ion-color-light: #FBF9F4;
+  --ion-color-light-rgb: 251, 249, 244;
+  --ion-color-light-contrast: #473C33;
+  --ion-color-light-contrast-rgb: 71, 60, 51;
+  --ion-color-light-shade: #dddbd7;
+  --ion-color-light-tint: #fbfaf6;
+
+  /** Fundo e texto base do app **/
+  --ion-background-color: #FBF9F4;
+  --ion-background-color-rgb: 251, 249, 244;
+  --ion-text-color: #473C33;
+  --ion-text-color-rgb: 71, 60, 51;
+
+  --ion-toolbar-background: #FBF9F4;
+  --ion-item-background: #ffffff;
+}

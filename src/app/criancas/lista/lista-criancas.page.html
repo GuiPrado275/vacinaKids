@@ -1,0 +1,89 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="app-heading">
+      Olá{{ (nomeResponsavel$ | async) ? ', ' + (nomeResponsavel$ | async) : '' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/campanhas" aria-label="Campanhas de vacinação">
+        <ion-icon name="megaphone-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button (click)="sair()" aria-label="Sair">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="lista-content">
+  <div class="pagina">
+
+    <!-- Cenário 3: campanhas ativas, em destaque no topo -->
+    @if ((campanhasAtivas$ | async); as campanhas) {
+      @if (campanhas.length > 0) {
+        <section class="bloco-campanhas">
+          @for (campanha of campanhas; track campanha.id) {
+            <a class="card-campanha" routerLink="/campanhas">
+              <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+              <div class="card-campanha-texto">
+                <strong>{{ campanha.titulo }}</strong>
+                <span>{{ campanha.publicoAlvo }}</span>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="seta" aria-hidden="true"></ion-icon>
+            </a>
+          }
+        </section>
+      }
+    }
+
+    <h2 class="app-heading titulo-secao">Minhas crianças</h2>
+
+    @if ((criancas$ | async); as criancas) {
+      @if (criancas.length === 0) {
+        <div class="estado-vazio">
+          <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          <p>Você ainda não cadastrou nenhuma criança.</p>
+          <ion-button routerLink="/criancas/nova" shape="round">Cadastrar criança</ion-button>
+        </div>
+      } @else {
+        <div class="grid-criancas">
+          @for (item of criancas; track item.crianca.id) {
+            <a class="card-crianca" [routerLink]="['/criancas', item.crianca.id]">
+              <div class="card-crianca-topo">
+                <div class="avatar" [attr.data-sexo]="item.crianca.sexo">
+                  {{ item.crianca.nome.charAt(0) }}
+                </div>
+                <div class="card-crianca-info">
+                  <strong>{{ item.crianca.nome }}</strong>
+                  <span>{{ formatarIdade(item.idadeEmMeses) }}</span>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="seta" aria-hidden="true"></ion-icon>
+              </div>
+
+              @if (item.temPendencia) {
+                <app-status-badge [status]="StatusVacina.ATRASADA" class="badge-pendencia" />
+              }
+
+              <div class="progresso">
+                <div class="progresso-barra">
+                  <div
+                    class="progresso-preenchido"
+                    [style.width.%]="item.resumo.total ? (item.resumo.aplicadas / item.resumo.total) * 100 : 0"
+                  ></div>
+                </div>
+                <span class="progresso-texto">
+                  {{ item.resumo.aplicadas }} de {{ item.resumo.total }} vacinas aplicadas
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button routerLink="/criancas/nova" color="primary" aria-label="Cadastrar criança">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -1,0 +1,92 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/criancas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">Cadastrar criança</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="formulario-content">
+  <div class="pagina">
+    <p class="introducao">
+      Esses dados são usados pra montar automaticamente o calendário de vacinas, então confira a data de nascimento com atenção.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="Nome da criança"
+          labelPlacement="stacked"
+          placeholder="Ex.: Alice"
+          formControlName="nome"
+          errorText="Informe o nome"
+          [class.ion-invalid]="form.controls.nome.touched && form.controls.nome.invalid"
+          [class.ion-touched]="form.controls.nome.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="CPF da criança"
+          labelPlacement="stacked"
+          inputmode="numeric"
+          placeholder="000.000.000-00"
+          formControlName="cpf"
+          (ionInput)="aoDigitarCpf($event.detail.value ?? '')"
+          [errorText]="cpfInvalido ? 'CPF inválido' : 'Informe o CPF'"
+          [class.ion-invalid]="(form.controls.cpf.touched && form.controls.cpf.invalid) || cpfInvalido"
+          [class.ion-touched]="form.controls.cpf.touched"
+        ></ion-input>
+      </ion-item>
+
+      <!-- Data de nascimento: item clicável que abre o ion-datetime num
+           modal — formato recomendado pelo Ionic 8 quando o espaço do
+           formulário é limitado (ver ion-datetime-button na documentação). -->
+      <ion-item lines="full" class="campo campo-data" id="abrir-data-nascimento" button="true" detail="false">
+        <ion-input
+          label="Data de nascimento"
+          labelPlacement="stacked"
+          placeholder="Selecionar data"
+          [value]="dataNascimentoFormatada"
+          readonly="true"
+          errorText="Informe a data de nascimento"
+          [class.ion-invalid]="form.controls.dataNascimento.touched && form.controls.dataNascimento.invalid"
+          [class.ion-touched]="form.controls.dataNascimento.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-modal trigger="abrir-data-nascimento" [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            presentation="date"
+            [max]="hojeIso"
+            locale="pt-BR"
+            [showDefaultButtons]="true"
+            doneText="Confirmar"
+            cancelText="Cancelar"
+            (ionChange)="aoSelecionarData($event.detail.value)"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <ion-item lines="full" class="campo">
+        <ion-select label="Sexo" labelPlacement="stacked" formControlName="sexo" interface="popover">
+          <ion-select-option value="F">Feminino</ion-select-option>
+          <ion-select-option value="M">Masculino</ion-select-option>
+          <ion-select-option value="NAO_INFORMADO">Prefiro não informar</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      @if (erroEnvio) {
+        <ion-text color="danger" class="mensagem-erro">
+          <p>{{ erroEnvio }}</p>
+        </ion-text>
+      }
+
+      <ion-button type="submit" expand="block" shape="round" [disabled]="enviando" class="botao-salvar">
+        Cadastrar e gerar calendário de vacinas
+      </ion-button>
+    </form>
+  </div>
+</ion-content>

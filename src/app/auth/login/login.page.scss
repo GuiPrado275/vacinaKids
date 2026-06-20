@@ -1,0 +1,192 @@
+.login-content {
+  --background: var(--ion-color-light);
+}
+
+.login-layout {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+// ---------------------------------------------------------------------------
+// Lado de apresentação (visível só em telas largas — ver media query no fim)
+// ---------------------------------------------------------------------------
+.login-apresentacao {
+  display: none;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+
+  ion-icon {
+    font-size: 1.75rem;
+    color: var(--ion-color-primary-shade);
+  }
+
+  span {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+.apresentacao-titulo {
+  font-size: 2.25rem;
+  line-height: 1.25;
+  color: var(--ion-color-dark);
+  margin: 0 0 1rem;
+}
+
+.apresentacao-texto {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ion-color-medium-shade);
+  max-width: 26rem;
+  margin: 0 0 2.5rem;
+}
+
+// Tiras coloridas com as 4 cores obrigatórias — o "índice de carteirinha"
+.tiras-cor {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 16rem;
+
+  .tira {
+    flex: 1;
+    height: 0.5rem;
+    border-radius: 999px;
+  }
+
+  .tira--primary { background: var(--ion-color-primary); }
+  .tira--secondary { background: var(--ion-color-secondary); }
+  .tira--tertiary { background: var(--ion-color-tertiary); }
+  .tira--dark { background: var(--ion-color-dark); }
+}
+
+// ---------------------------------------------------------------------------
+// Cartão de login
+// ---------------------------------------------------------------------------
+.login-cartao {
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  box-sizing: border-box;
+}
+
+.cartao-marca-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--ion-color-primary-shade);
+  }
+
+  span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+.cartao-titulo {
+  font-size: 1.75rem;
+  color: var(--ion-color-dark);
+  margin: 0 0 0.25rem;
+}
+
+.cartao-subtitulo {
+  font-size: 0.9rem;
+  color: var(--ion-color-medium-shade);
+  margin: 0 0 1.75rem;
+}
+
+.campo {
+  --background: #ffffff;
+  --border-color: #e7e2d8;
+  --highlight-color-focused: var(--ion-color-primary);
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  --padding-start: 0.9rem;
+}
+
+.icone-olho {
+  cursor: pointer;
+  color: var(--ion-color-medium);
+  font-size: 1.2rem;
+}
+
+.mensagem-erro {
+  display: block;
+  margin: -0.25rem 0 1rem;
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.botao-entrar {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  --background-activated: var(--ion-color-primary-shade);
+  font-family: var(--app-font-heading);
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.botao-demo {
+  --color: var(--ion-color-dark-tint);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+// ---------------------------------------------------------------------------
+// Responsividade — desktop/tablet ganham o painel de apresentação ao lado;
+// mobile mantém só o cartão, ocupando a tela inteira (foco total no form).
+// ---------------------------------------------------------------------------
+@media (min-width: 768px) {
+  .login-layout {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .login-apresentacao {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1.1;
+    padding: 3rem 3rem 3rem 4rem;
+    background: linear-gradient(160deg, #f3efe2 0%, var(--ion-color-light) 60%);
+  }
+
+  .login-cartao {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 28rem;
+    padding: 2rem 3rem;
+  }
+
+  .cartao-marca-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .login-apresentacao {
+    padding-left: 6rem;
+  }
+
+  .apresentacao-titulo {
+    font-size: 2.75rem;
+  }
+}

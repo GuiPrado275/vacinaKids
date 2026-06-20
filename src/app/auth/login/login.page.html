@@ -1,0 +1,95 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="login-layout">
+
+    <!-- Lado de apresentação: existe só em telas largas (tablet/desktop).
+         Em mobile esse bloco fica oculto via CSS pra não competir com o
+         formulário, que é o que realmente importa numa tela pequena. -->
+    <section class="login-apresentacao">
+      <div class="marca">
+        <ion-icon name="syringe-outline" aria-hidden="true"></ion-icon>
+        <span class="app-heading">Carteirinha</span>
+      </div>
+
+      <h1 class="app-heading apresentacao-titulo">
+        A jornada de vacinação<br />de quem você ama,<br />num só lugar.
+      </h1>
+      <p class="apresentacao-texto">
+        Acompanhe vacinas aplicadas, pendências e campanhas de cada criança da família, sem depender da carteirinha de papel.
+      </p>
+
+      <!-- Tiras coloridas com as 4 cores obrigatórias do desafio — é o
+           "índice de carteirinha" que vira o elemento de assinatura do
+           app, reaparece (em outra forma) na tela de carteira vacinal. -->
+      <div class="tiras-cor" aria-hidden="true">
+        <span class="tira tira--primary"></span>
+        <span class="tira tira--secondary"></span>
+        <span class="tira tira--tertiary"></span>
+        <span class="tira tira--dark"></span>
+      </div>
+    </section>
+
+    <!-- Cartão de login -->
+    <section class="login-cartao">
+      <div class="cartao-marca-mobile">
+        <ion-icon name="syringe-outline" aria-hidden="true"></ion-icon>
+        <span class="app-heading">Carteirinha</span>
+      </div>
+
+      <h2 class="app-heading cartao-titulo">Entrar</h2>
+      <p class="cartao-subtitulo">Use o CPF cadastrado como responsável.</p>
+
+      <form [formGroup]="form" (ngSubmit)="entrar()" novalidate>
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="CPF"
+            labelPlacement="stacked"
+            inputmode="numeric"
+            placeholder="000.000.000-00"
+            formControlName="cpf"
+            (ionInput)="aoDigitarCpf($event.detail.value ?? '')"
+            errorText="Informe seu CPF"
+            [class.ion-invalid]="form.controls.cpf.touched && form.controls.cpf.invalid"
+            [class.ion-touched]="form.controls.cpf.touched"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="Senha"
+            labelPlacement="stacked"
+            [type]="senhaVisivel ? 'text' : 'password'"
+            placeholder="••••••"
+            formControlName="senha"
+            errorText="Informe sua senha"
+            [class.ion-invalid]="form.controls.senha.touched && form.controls.senha.invalid"
+            [class.ion-touched]="form.controls.senha.touched"
+          >
+            <ion-icon
+              slot="end"
+              [name]="senhaVisivel ? 'eye-off-outline' : 'eye-outline'"
+              (click)="alternarVisibilidadeSenha()"
+              class="icone-olho"
+              [attr.aria-label]="senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'"
+              role="button"
+            ></ion-icon>
+          </ion-input>
+        </ion-item>
+
+        @if (erroLogin) {
+          <ion-text color="danger" class="mensagem-erro">
+            <p>{{ erroLogin }}</p>
+          </ion-text>
+        }
+
+        <ion-button type="submit" expand="block" shape="round" [disabled]="enviando" class="botao-entrar">
+          Entrar
+        </ion-button>
+
+        <ion-button type="button" expand="block" fill="clear" shape="round" (click)="preencherDemo()" class="botao-demo">
+          <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+          Usar conta de demonstração
+        </ion-button>
+      </form>
+    </section>
+  </div>
+</ion-content>

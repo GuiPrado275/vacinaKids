@@ -1,0 +1,119 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/criancas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">Carteira de vacinação</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detalhe-content">
+  @if ((detalhe$ | async); as detalhe) {
+    @if (detalhe) {
+      <div class="pagina">
+
+        <!-- Cabeçalho: identidade da criança bem clara, pra nunca dar
+             margem a confundir com outro filho (Cenário 4) -->
+        <section class="cabecalho-crianca">
+          <div class="avatar-grande" [attr.data-sexo]="detalhe.crianca.sexo">
+            {{ detalhe.crianca.nome.charAt(0) }}
+          </div>
+          <div class="cabecalho-info">
+            <h1 class="app-heading">{{ detalhe.crianca.nome }}</h1>
+            <span class="cabecalho-idade">
+              <ion-icon name="cake-outline" aria-hidden="true"></ion-icon>
+              {{ detalhe.idadeEmMeses }} {{ detalhe.idadeEmMeses === 1 ? 'mês' : 'meses' }} de vida
+            </span>
+          </div>
+        </section>
+
+        <!-- Resumo numérico (Cenário 1) -->
+        <section class="resumo-cards">
+          <div class="resumo-card resumo-card--total">
+            <strong>{{ detalhe.resumo.total }}</strong>
+            <span>Vacinas previstas</span>
+          </div>
+          <div class="resumo-card resumo-card--ok">
+            <strong>{{ detalhe.resumo.aplicadas }}</strong>
+            <span>Aplicadas</span>
+          </div>
+          @if (detalhe.resumo.atrasadas > 0) {
+            <div class="resumo-card resumo-card--alerta">
+              <strong>{{ detalhe.resumo.atrasadas }}</strong>
+              <span>Atrasadas</span>
+            </div>
+          }
+        </section>
+
+        <!-- Timeline agrupada por idade, igual à carteirinha física -->
+        <section class="timeline">
+          @for (grupo of detalhe.grupos; track grupo.idadeRecomendadaMeses) {
+            <div class="grupo-idade">
+              <div class="grupo-marcador">
+                <span class="grupo-ponto"></span>
+                <span class="grupo-linha"></span>
+              </div>
+              <div class="grupo-conteudo">
+                <h3 class="grupo-rotulo">{{ grupo.rotulo }}</h3>
+
+                @for (registro of grupo.registros; track registro.id) {
+                  <div class="item-vacina" [class.item-vacina--aplicada]="registro.status === StatusVacina.APLICADA">
+                    <div class="item-vacina-texto">
+                      <strong>{{ registro.vacina.nome }}</strong>
+                      <span class="item-vacina-dose">{{ registro.vacina.doseNumero }}ª dose · {{ registro.vacina.protegeContra }}</span>
+                      @if (registro.status === StatusVacina.APLICADA && registro.dataAplicacao) {
+                        <span class="item-vacina-data">Aplicada em {{ formatarData(registro.dataAplicacao) }}</span>
+                      }
+                    </div>
+
+                    <div class="item-vacina-acao">
+                      <app-status-badge [status]="registro.status" />
+
+                      @if (registro.status === StatusVacina.APLICADA) {
+                        <ion-button
+                          fill="clear"
+                          size="small"
+                          color="medium"
+                          (click)="desfazerAplicacao(registro)"
+                          aria-label="Desfazer aplicação"
+                        >
+                          <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                      } @else {
+                        <ion-button
+                          fill="solid"
+                          size="small"
+                          color="primary"
+                          (click)="pedirConfirmacaoAplicar(registro)"
+                        >
+                          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                          Marcar
+                        </ion-button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </section>
+      </div>
+    } @else {
+      <div class="nao-encontrada">
+        <p>Não encontramos essa criança.</p>
+        <ion-button routerLink="/criancas">Voltar para minhas crianças</ion-button>
+      </div>
+    }
+  }
+</ion-content>
+
+<ion-alert
+  [isOpen]="registroParaConfirmar !== null"
+  header="Confirmar aplicação"
+  [message]="registroParaConfirmar ? ('Confirma que ' + registroParaConfirmar.vacina.nome + ' (' + registroParaConfirmar.vacina.doseNumero + 'ª dose) foi aplicada hoje?') : ''"
+  [buttons]="[
+    { text: 'Cancelar', role: 'cancel' },
+    { text: 'Confirmar', role: 'confirm' }
+  ]"
+  (didDismiss)="aoFecharConfirmacao($event)"
+></ion-alert>

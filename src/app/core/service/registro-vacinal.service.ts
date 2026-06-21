@@ -97,11 +97,6 @@ export class RegistroVacinalService {
 
   // Atende ao Cenário 1: resumo pronto pra exibir num card/indicador visual
   // (ex.: barra de progresso "8 de 12 vacinas aplicadas").
-  //
-  // Observação: hoje calcularStatusVacina (no model) nunca devolve
-  // StatusVacina.FUTURA — vacinas que ainda não venceram entram como
-  // EM_DIA. Deixamos o contador "futuras" já pronto aqui pra não precisar
-  // tocar nesse service caso decidam separar esses dois casos depois.
   obterResumo(criancaId: string): Observable<ResumoVacinal> {
     return this.listarDetalhadoPorCrianca(criancaId).pipe(
       map((registros) => ({
@@ -117,7 +112,19 @@ export class RegistroVacinalService {
   // Marca a vacina como efetivamente aplicada. A partir daqui o status
   // passa a ser sempre APLICADA, sem depender mais de data (ver
   // calcularStatusVacina no model).
+  //
+  // Regra de negócio: uma vacina FUTURA (data prevista a mais de um mês)
+  // não pode ser marcada como aplicada — não faz sentido tomar uma vacina
+  // fora de hora. Só vacinas EM_DIA (perto do prazo) ou ATRASADA podem.
+  // Essa checagem fica aqui (não só na tela) porque é a regra de negócio
+  // de verdade, e esse service é o único lugar que deveria gravar
+  // dataAplicacao.
   registrarAplicacao(registroId: string, dataAplicacao: string, localAplicacao?: string): void {
+    const registro = this.registros$$.value.find((r) => r.id === registroId);
+    if (registro && calcularStatusVacina(registro) === StatusVacina.FUTURA) {
+      throw new Error('Essa vacina ainda não pode ser marcada como aplicada — está fora do período recomendado.');
+    }
+
     this.atualizarRegistro(registroId, { dataAplicacao, localAplicacao });
   }
 

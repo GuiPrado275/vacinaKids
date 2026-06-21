@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   IonContent,
   IonIcon,
@@ -24,12 +24,13 @@ import { normalizarCpf, formatarCpf } from '../../core/util/cpf.util';
   standalone: true,
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  imports: [CommonModule, ReactiveFormsModule, IonContent, IonIcon, IonInput, IonButton, IonText, IonItem],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, IonContent, IonIcon, IonInput, IonButton, IonText, IonItem],
 })
 export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   // Validação de formato fica no Validators.pattern (11 dígitos), a
   // validação "de verdade" (dígito verificador) só roda no submit, contra
@@ -44,6 +45,11 @@ export class LoginPage {
   protected senhaVisivel = false;
   protected erroLogin: string | null = null;
   protected enviando = false;
+
+  // Mensagem de boas-vindas depois de um cadastro recém-feito (ver
+  // CadastroPage.cadastrar, que redireciona pra cá com ?cadastrado=1 em
+  // vez de logar automaticamente).
+  protected readonly cadastroRecente = this.route.snapshot.queryParamMap.get('cadastrado') === '1';
 
   constructor() {
     addIcons({ medkitOutline, eyeOutline, eyeOffOutline, personCircleOutline });

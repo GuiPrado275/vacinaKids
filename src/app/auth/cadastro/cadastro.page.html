@@ -1,0 +1,136 @@
+<ion-content [fullscreen]="true" class="cadastro-content">
+  <div class="cadastro-layout">
+
+    <section class="cadastro-apresentacao">
+      <div class="marca">
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+        <span class="app-heading">Carteirinha</span>
+      </div>
+      <h1 class="app-heading apresentacao-titulo">
+        Crie sua conta<br />e acompanhe<br />cada vacina.
+      </h1>
+      <p class="apresentacao-texto">
+        Cadastre-se para gerenciar o histórico de vacinação das suas crianças de forma simples e segura.
+      </p>
+      <div class="tiras-cor" aria-hidden="true">
+        <span class="tira tira--primary"></span>
+        <span class="tira tira--secondary"></span>
+        <span class="tira tira--tertiary"></span>
+        <span class="tira tira--dark"></span>
+      </div>
+    </section>
+
+    <section class="cadastro-cartao">
+      <div class="cartao-marca-mobile">
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+        <span class="app-heading">Carteirinha</span>
+      </div>
+
+      <h2 class="app-heading cartao-titulo">Criar conta</h2>
+      <p class="cartao-subtitulo">Preencha seus dados para começar.</p>
+
+      <form [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="Nome completo"
+            labelPlacement="stacked"
+            placeholder="Seu nome"
+            formControlName="nome"
+            errorText="Informe seu nome (mínimo 3 caracteres)"
+            [class.ion-invalid]="form.controls.nome.touched && form.controls.nome.invalid"
+            [class.ion-touched]="form.controls.nome.touched"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="CPF"
+            labelPlacement="stacked"
+            inputmode="numeric"
+            placeholder="000.000.000-00"
+            formControlName="cpf"
+            (ionInput)="aoDigitarCpf($event.detail.value ?? '')"
+            errorText="Informe seu CPF"
+            [class.ion-invalid]="form.controls.cpf.touched && form.controls.cpf.invalid"
+            [class.ion-touched]="form.controls.cpf.touched"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="E-mail (opcional)"
+            labelPlacement="stacked"
+            type="email"
+            placeholder="seu@email.com"
+            formControlName="email"
+            errorText="E-mail inválido"
+            [class.ion-invalid]="form.controls.email.touched && form.controls.email.invalid"
+            [class.ion-touched]="form.controls.email.touched"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="Senha"
+            labelPlacement="stacked"
+            [type]="senhaVisivel ? 'text' : 'password'"
+            placeholder="Mínimo 6 caracteres"
+            formControlName="senha"
+            errorText="Informe uma senha com pelo menos 6 caracteres"
+            [class.ion-invalid]="form.controls.senha.touched && form.controls.senha.invalid"
+            [class.ion-touched]="form.controls.senha.touched"
+          >
+            <ion-icon
+              slot="end"
+              [name]="senhaVisivel ? 'eye-off-outline' : 'eye-outline'"
+              (click)="senhaVisivel = !senhaVisivel"
+              class="icone-olho"
+            ></ion-icon>
+          </ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="Confirmar senha"
+            labelPlacement="stacked"
+            [type]="confirmarSenhaVisivel ? 'text' : 'password'"
+            placeholder="Repita a senha"
+            formControlName="confirmarSenha"
+            errorText="Confirme sua senha"
+            [class.ion-invalid]="(form.controls.confirmarSenha.touched && form.controls.confirmarSenha.invalid) || senhasNaoCoincidem"
+            [class.ion-touched]="form.controls.confirmarSenha.touched"
+          >
+            <ion-icon
+              slot="end"
+              [name]="confirmarSenhaVisivel ? 'eye-off-outline' : 'eye-outline'"
+              (click)="confirmarSenhaVisivel = !confirmarSenhaVisivel"
+              class="icone-olho"
+            ></ion-icon>
+          </ion-input>
+        </ion-item>
+
+        @if (senhasNaoCoincidem) {
+          <ion-text color="danger" class="mensagem-erro">
+            <p>As senhas não coincidem.</p>
+          </ion-text>
+        }
+
+        @if (erroCadastro) {
+          <ion-text color="danger" class="mensagem-erro">
+            <p>{{ erroCadastro }}</p>
+          </ion-text>
+        }
+
+        <ion-button type="submit" expand="block" shape="round" [disabled]="enviando" class="botao-cadastrar">
+          Criar conta
+        </ion-button>
+
+        <p class="link-login">
+          Já tem conta? <a routerLink="/login">Entrar</a>
+        </p>
+
+      </form>
+    </section>
+  </div>
+</ion-content>

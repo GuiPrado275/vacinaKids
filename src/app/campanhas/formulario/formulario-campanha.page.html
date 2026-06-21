@@ -1,0 +1,121 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/campanhas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">{{ editando ? 'Editar campanha' : 'Nova campanha' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="formulario-content">
+  <div class="pagina">
+    <p class="introducao">
+      Essas informações aparecem pra todos os responsáveis na tela de campanhas de vacinação.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="Título da campanha"
+          labelPlacement="stacked"
+          placeholder="Ex.: Campanha de Multivacinação"
+          formControlName="titulo"
+          errorText="Informe o título"
+          [class.ion-invalid]="form.controls.titulo.touched && form.controls.titulo.invalid"
+          [class.ion-touched]="form.controls.titulo.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-textarea
+          label="Descrição"
+          labelPlacement="stacked"
+          placeholder="Explique do que se trata a campanha"
+          autoGrow="true"
+          formControlName="descricao"
+          errorText="Informe a descrição"
+          [class.ion-invalid]="form.controls.descricao.touched && form.controls.descricao.invalid"
+          [class.ion-touched]="form.controls.descricao.touched"
+        ></ion-textarea>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="Público-alvo"
+          labelPlacement="stacked"
+          placeholder="Ex.: 0 a 5 anos"
+          formControlName="publicoAlvo"
+          errorText="Informe o público-alvo"
+          [class.ion-invalid]="form.controls.publicoAlvo.touched && form.controls.publicoAlvo.invalid"
+          [class.ion-touched]="form.controls.publicoAlvo.touched"
+        ></ion-input>
+      </ion-item>
+
+      <!-- Mesmo padrão do formulário de criança: item clicável que abre o
+           ion-datetime num modal, em vez de um input de data nativo. -->
+      <ion-item lines="full" class="campo campo-data" id="abrir-data-inicio" button="true" detail="false">
+        <ion-input
+          label="Data de início"
+          labelPlacement="stacked"
+          placeholder="Selecionar data"
+          [value]="dataInicioFormatada"
+          readonly="true"
+          errorText="Informe a data de início"
+          [class.ion-invalid]="form.controls.dataInicio.touched && form.controls.dataInicio.invalid"
+          [class.ion-touched]="form.controls.dataInicio.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-modal trigger="abrir-data-inicio" [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            presentation="date"
+            locale="pt-BR"
+            [showDefaultButtons]="true"
+            doneText="Confirmar"
+            cancelText="Cancelar"
+            [value]="form.controls.dataInicio.value || undefined"
+            (ionChange)="aoSelecionarDataInicio($event.detail.value)"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <ion-item lines="full" class="campo campo-data" id="abrir-data-fim" button="true" detail="false">
+        <ion-input
+          label="Data de término"
+          labelPlacement="stacked"
+          placeholder="Selecionar data"
+          [value]="dataFimFormatada"
+          readonly="true"
+          errorText="Informe a data de término"
+          [class.ion-invalid]="form.controls.dataFim.touched && form.controls.dataFim.invalid"
+          [class.ion-touched]="form.controls.dataFim.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-modal trigger="abrir-data-fim" [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            presentation="date"
+            locale="pt-BR"
+            [showDefaultButtons]="true"
+            doneText="Confirmar"
+            cancelText="Cancelar"
+            [value]="form.controls.dataFim.value || undefined"
+            (ionChange)="aoSelecionarDataFim($event.detail.value)"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      @if (erroEnvio) {
+        <ion-text color="danger" class="mensagem-erro">
+          <p>{{ erroEnvio }}</p>
+        </ion-text>
+      }
+
+      <ion-button type="submit" expand="block" shape="round" [disabled]="enviando" class="botao-salvar">
+        {{ editando ? 'Salvar alterações' : 'Criar campanha' }}
+      </ion-button>
+    </form>
+  </div>
+</ion-content>

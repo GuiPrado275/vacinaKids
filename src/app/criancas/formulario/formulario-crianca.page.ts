@@ -20,7 +20,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { CriancaService } from '../../core/service/crianca.service';
-import { normalizarCpf, formatarCpf, validarCpf } from '../../core/util/cpf.util';
+import { normalizarCpf, formatarCpf } from '../../core/util/cpf.util';
 
 @Component({
   selector: 'app-formulario-crianca',
@@ -74,10 +74,13 @@ export class FormularioCriancaPage {
   // Validação de CPF de verdade (dígito verificador), além do required —
   // mostrar isso já no formulário evita que a pessoa só descubra o erro
   // depois de tentar salvar, no catch do cadastrar().
+  // Só verifica se tem 11 dígitos — não valida dígito verificador,
+  // pois a criança pode ter qualquer CPF válido em formato.
   protected get cpfInvalido(): boolean {
     const valor = this.form.controls.cpf.value;
     if (!valor) return false;
-    return normalizarCpf(valor).length === 11 && !validarCpf(valor);
+    const numeros = normalizarCpf(valor);
+    return numeros.length > 0 && numeros.length < 11;
   }
 
   protected aoSelecionarData(valor: string | string[] | null | undefined): void {

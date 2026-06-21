@@ -14,7 +14,7 @@ import {
   IonAlert,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline, arrowUndoOutline, calendarOutline } from 'ionicons/icons';
+import { checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline } from 'ionicons/icons';
 
 import { CriancaService } from '../../core/service/crianca.service';
 import { RegistroVacinalService, RegistroDetalhado, ResumoVacinal } from '../../core/service/registro-vacinal.service';
@@ -85,7 +85,7 @@ export class DetalheCriancaPage {
   );
 
   constructor() {
-    addIcons({ checkmarkOutline, arrowUndoOutline, calendarOutline });
+    addIcons({ checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline });
   }
 
   // Rótulo amigável da faixa etária — "Ao nascer", "2 meses", "4 anos" —
@@ -129,7 +129,16 @@ export class DetalheCriancaPage {
 
   // Pede confirmação antes de marcar como aplicada, porque é uma ação que
   // afeta um registro de saúde — não deve acontecer por toque acidental.
+  //
+  // Guarda extra contra vacina FUTURA: o botão já vem desabilitado nesse
+  // caso (ver template), mas não confiamos só nisso — se por algum motivo
+  // esse método for chamado mesmo assim, ele simplesmente não abre o
+  // diálogo. Uma vacina prevista pra daqui a anos não pode ser marcada
+  // como tomada fora de hora.
   protected pedirConfirmacaoAplicar(registro: RegistroDetalhado): void {
+    if (registro.status === StatusVacina.FUTURA) {
+      return;
+    }
     this.registroParaConfirmar = registro;
   }
 
@@ -144,7 +153,13 @@ export class DetalheCriancaPage {
 
     if (role === 'confirm' && registro) {
       const hoje = new Date().toISOString().slice(0, 10);
-      this.registroVacinalService.registrarAplicacao(registro.id, hoje);
+      try {
+        this.registroVacinalService.registrarAplicacao(registro.id, hoje);
+      } catch {
+        // Na prática não deve acontecer (o botão já vem desabilitado pra
+        // vacina futura), mas se acontecer, simplesmente não aplica —
+        // sem isso quebrar a tela.
+      }
     }
   }
 

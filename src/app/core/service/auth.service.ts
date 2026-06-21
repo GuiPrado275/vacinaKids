@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Responsavel } from '../model/responsavel.model';
 import { StorageService } from './storage.service';
-import { ResponsavelService } from './responsavel.service';
+import ResponsavelService from './responsavel.service';
 import { normalizarCpf } from '../util/cpf.util';
 
 const CHAVE_SESSAO = 'vacina_app_sessao';
@@ -40,10 +40,26 @@ export class AuthService {
     return this.responsavelLogado$$.value !== null;
   }
 
+  // Usado pelas telas/guards que precisam decidir se mostram algo só pro
+  // administrador (ícone de criar campanha, link de gerenciar usuários
+  // etc.). Centralizado aqui em vez de cada tela checar
+  // `responsavel?.isAdmin` na mão, pra não espalhar esse `?? false` por
+  // todo canto.
+  ehAdmin(): boolean {
+    return this.responsavelLogado$$.value?.isAdmin === true;
+  }
+
   // Usado por outros services (CriancaService, por exemplo) pra saber de
   // quem é a conta ativa, sem precisar virar Observable só pra pegar um id.
   obterIdResponsavelLogado(): string | null {
     return this.responsavelLogado$$.value?.id ?? null;
+  }
+
+  // Versão síncrona de responsavelLogado(), pra telas que precisam dos
+  // dados completos da conta ativa de uma vez (ex.: pré-preencher um
+  // formulário de edição), sem se inscrever num Observable só pra isso.
+  obterResponsavelLogado(): Responsavel | null {
+    return this.responsavelLogado$$.value;
   }
 
   // Confere CPF + senha contra os responsáveis já cadastrados. Devolve o
@@ -71,5 +87,19 @@ export class AuthService {
   logout(): void {
     this.responsavelLogado$$.next(null);
     this.storage.remover(CHAVE_SESSAO);
+  }
+
+  // Atualiza o responsável da sessão ativa com os dados mais recentes do
+  // ResponsavelService — usado depois de editar e-mail/senha em "Minha
+  // conta" (EditarUsuarioPage), pra sessão em memória não ficar com dado
+  // velho até a próxima vez que o app for recarregado.
+  atualizarSessaoComDadosAtuais(): void {
+    const idAtual = this.responsavelLogado$$.value?.id;
+    if (!idAtual) return;
+
+    const responsavelAtualizado = this.responsavelService.buscarPorId(idAtual);
+    if (responsavelAtualizado) {
+      this.responsavelLogado$$.next(responsavelAtualizado);
+    }
   }
 }

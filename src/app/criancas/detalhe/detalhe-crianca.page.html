@@ -79,6 +79,20 @@
                         >
                           <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
                         </ion-button>
+                      } @else if (registro.status === StatusVacina.FUTURA) {
+                        <!-- Vacina futura (mais de um mês até a data prevista) não
+                             pode ser marcada como aplicada fora de hora — só
+                             quando estiver em dia (perto do prazo) ou atrasada. -->
+                        <ion-button
+                          fill="outline"
+                          size="small"
+                          color="medium"
+                          disabled="true"
+                          aria-label="Ainda não é possível marcar essa vacina"
+                        >
+                          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+                          Marcar
+                        </ion-button>
                       } @else {
                         <ion-button
                           fill="solid"

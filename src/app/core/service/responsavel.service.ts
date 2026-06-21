@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Responsavel, ResponsavelForm } from '../model/responsavel.model';
 import { StorageService } from './storage.service';
-import { normalizarCpf, validarCpf } from '../util/cpf.util';
+import { normalizarCpf } from '../util/cpf.util';
 
 const CHAVE_STORAGE = 'vacina_app_responsaveis';
 
@@ -12,7 +12,7 @@ const CHAVE_STORAGE = 'vacina_app_responsaveis';
 // está logado agora" é o AuthService, de propósito separado daqui, pra
 // não misturar cadastro com sessão.
 @Injectable({ providedIn: 'root' })
-export class ResponsavelService {
+class ResponsavelService {
   private readonly responsaveis$$: BehaviorSubject<Responsavel[]>;
 
   constructor(private storage: StorageService) {
@@ -25,6 +25,10 @@ export class ResponsavelService {
   // (e ver as crianças de exemplo) sem precisar criar uma conta antes.
   // CPF e senha de teste: 123.456.789-09 / 123456 (vale colocar isso no
   // README de entrega do desafio).
+  //
+  // Além dele, a conta administradora também nasce aqui no seed (não tem
+  // formulário de cadastro de admin — só essa conta fixa mesmo).
+  // CPF: 111.111.111-11 / senha: admin123.
   private responsaveisIniciais(): Responsavel[] {
     return [
       {
@@ -33,6 +37,13 @@ export class ResponsavelService {
         cpf: '12345678909',
         senha: '123456',
         email: 'demo@email.com',
+      },
+      {
+        id: 'resp-admin',
+        nome: 'Administrador',
+        cpf: '11111111111',
+        senha: 'admin123',
+        isAdmin: true,
       },
     ];
   }
@@ -58,8 +69,8 @@ export class ResponsavelService {
   cadastrar(dados: ResponsavelForm): Responsavel {
     const cpfNormalizado = normalizarCpf(dados.cpf);
 
-    if (!validarCpf(cpfNormalizado)) {
-      throw new Error('CPF inválido.');
+    if (cpfNormalizado.length !== 11) {
+      throw new Error('CPF inválido. Informe os 11 dígitos.');
     }
 
     if (this.buscarPorCpf(cpfNormalizado)) {
@@ -96,7 +107,17 @@ export class ResponsavelService {
   // Por isso, excluir a conta E as crianças junto é orquestrado por quem
   // chama os dois services (uma tela de "excluir conta", por exemplo),
   // não por um service chamando o outro.
+  //
+  // Proteção extra: a conta admin nunca é removida por aqui, mesmo que
+  // alguém tente chamar isso direto (ex.: bug de UI). A tela de "excluir
+  // conta" já nem mostra a opção pro admin, mas a regra de negócio real
+  // mora aqui, não só na UI.
   remover(id: string): void {
+    const responsavel = this.buscarPorId(id);
+    if (responsavel?.isAdmin) {
+      throw new Error('A conta de administrador não pode ser removida.');
+    }
+
     this.responsaveis$$.next(this.responsaveis$$.value.filter((responsavel) => responsavel.id !== id));
     this.persistir();
   }
@@ -105,3 +126,5 @@ export class ResponsavelService {
     this.storage.salvar(CHAVE_STORAGE, this.responsaveis$$.value);
   }
 }
+
+export default ResponsavelService

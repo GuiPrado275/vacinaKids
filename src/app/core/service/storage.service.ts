@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 
-// Aqui concentramos toda a conversa com o localStorage do navegador.
-// O desafio não pede um backend obrigatório, então usamos o armazenamento
-// local pra simular um "banco de dados" e não perder os dados quando a
-// página é recarregada.
+// Camada de persistência local. Toda a leitura/escrita de dados passa por
+// aqui — nenhum outro service acessa o localStorage diretamente.
 //
-// Decisão importante: nenhum outro service fala com o localStorage direto,
-// todos passam por aqui. Assim, se um dia trocarmos isso por Firestore
-// (um dos diferenciais do desafio), só essa classe precisa mudar — o resto
-// do app continua chamando os mesmos métodos e nem fica sabendo da troca.
+// PREPARADO PARA FIRESTORE: quando for integrar o Firebase, basta substituir
+// a implementação dos métodos abaixo pelas chamadas ao Firestore
+// (collection / doc / setDoc / getDoc). A interface pública (obter / salvar
+// / remover) não muda, então ResponsavelService, CriancaService e AuthService
+// não precisam ser tocados. Os dados de cada coleção já usam chaves distintas
+// (vacina_app_responsaveis, vacina_app_criancas, vacina_app_vacinas) que
+// mapeiam diretamente para coleções do Firestore.
 @Injectable({ providedIn: 'root' })
 export class StorageService {
   // Busca um valor salvo. Devolve null se não existir ou se der algum erro

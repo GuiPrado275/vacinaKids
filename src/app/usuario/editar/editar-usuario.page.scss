@@ -1,0 +1,85 @@
+.editar-usuario-content {
+  --background: var(--ion-color-light);
+}
+
+.pagina {
+  padding: 1rem 1.25rem 3rem;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.introducao {
+  font-size: 0.88rem;
+  color: var(--ion-color-medium-shade);
+  line-height: 1.5;
+  margin: 0 0 1.5rem;
+}
+
+.campo {
+  --background: #ffffff;
+  --border-color: #e7e2d8;
+  --highlight-color-focused: var(--ion-color-primary);
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  --padding-start: 0.9rem;
+}
+
+.campo-somente-leitura {
+  --background: color-mix(in srgb, var(--ion-color-medium) 8%, white);
+  --color: var(--ion-color-medium-shade);
+}
+
+.icone-olho {
+  cursor: pointer;
+  color: var(--ion-color-medium);
+}
+
+.mensagem-erro {
+  display: block;
+  margin: -0.25rem 0 1rem;
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.mensagem-sucesso {
+  display: block;
+  margin: -0.25rem 0 1rem;
+  color: var(--ion-color-primary-shade);
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.botao-salvar {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  --background-activated: var(--ion-color-primary-shade);
+  font-family: var(--app-font-heading);
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.zona-perigo {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #efeae0;
+}
+
+.zona-perigo-titulo {
+  font-size: 1rem;
+  color: var(--ion-color-dark);
+  margin: 0 0 0.4rem;
+}
+
+.zona-perigo-texto {
+  font-size: 0.82rem;
+  color: var(--ion-color-medium-shade);
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}

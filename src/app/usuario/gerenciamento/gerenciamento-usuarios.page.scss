@@ -1,0 +1,105 @@
+.gerenciamento-content {
+  --background: var(--ion-color-light);
+}
+
+.pagina {
+  padding: 0.5rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.mensagem-erro {
+  color: var(--ion-color-danger);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.lista-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #efeae0;
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.card-usuario-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-family: var(--app-font-heading);
+  flex-shrink: 0;
+}
+
+.card-usuario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    color: var(--ion-color-dark);
+    font-size: 0.95rem;
+  }
+}
+
+.card-usuario-cpf,
+.card-usuario-criancas {
+  font-size: 0.78rem;
+  color: var(--ion-color-medium);
+}
+
+.botao-remover {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ion-color-tertiary) 14%, white);
+  color: var(--ion-color-tertiary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.1rem;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--ion-color-tertiary) 35%, white);
+  }
+}
+
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  color: var(--ion-color-medium-shade);
+
+  ion-icon {
+    font-size: 2rem;
+    color: var(--ion-color-primary);
+  }
+
+  p {
+    margin: 0;
+  }
+}

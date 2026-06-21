@@ -1,0 +1,130 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/criancas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">Minha conta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="editar-usuario-content">
+  <div class="pagina">
+    <p class="introducao">
+      Atualize seu e-mail ou sua senha. O CPF usado para entrar não pode ser alterado por aqui.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      <ion-item lines="none" class="campo campo-somente-leitura">
+        <ion-input
+          label="Nome"
+          labelPlacement="stacked"
+          [value]="nomeResponsavel"
+          readonly="true"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="E-mail"
+          labelPlacement="stacked"
+          type="email"
+          placeholder="seu@email.com"
+          formControlName="email"
+          errorText="E-mail inválido"
+          [class.ion-invalid]="form.controls.email.touched && form.controls.email.invalid"
+          [class.ion-touched]="form.controls.email.touched"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="Nova senha"
+          labelPlacement="stacked"
+          [type]="senhaVisivel ? 'text' : 'password'"
+          placeholder="Deixe em branco para manter a atual"
+          formControlName="novaSenha"
+          errorText="A senha precisa ter pelo menos 6 caracteres"
+          [class.ion-invalid]="form.controls.novaSenha.touched && form.controls.novaSenha.invalid"
+          [class.ion-touched]="form.controls.novaSenha.touched"
+        >
+          <ion-icon
+            slot="end"
+            [name]="senhaVisivel ? 'eye-off-outline' : 'eye-outline'"
+            (click)="senhaVisivel = !senhaVisivel"
+            class="icone-olho"
+          ></ion-icon>
+        </ion-input>
+      </ion-item>
+
+      <ion-item lines="full" class="campo">
+        <ion-input
+          label="Confirmar nova senha"
+          labelPlacement="stacked"
+          [type]="confirmarSenhaVisivel ? 'text' : 'password'"
+          placeholder="Repita a nova senha"
+          formControlName="confirmarNovaSenha"
+          [class.ion-invalid]="senhasNaoCoincidem"
+        >
+          <ion-icon
+            slot="end"
+            [name]="confirmarSenhaVisivel ? 'eye-off-outline' : 'eye-outline'"
+            (click)="confirmarSenhaVisivel = !confirmarSenhaVisivel"
+            class="icone-olho"
+          ></ion-icon>
+        </ion-input>
+      </ion-item>
+
+      @if (senhasNaoCoincidem) {
+        <ion-text color="danger" class="mensagem-erro">
+          <p>As senhas não coincidem.</p>
+        </ion-text>
+      }
+
+      @if (erro) {
+        <ion-text color="danger" class="mensagem-erro">
+          <p>{{ erro }}</p>
+        </ion-text>
+      }
+
+      @if (sucesso) {
+        <ion-text class="mensagem-sucesso">
+          <p>{{ sucesso }}</p>
+        </ion-text>
+      }
+
+      <ion-button type="submit" expand="block" shape="round" [disabled]="enviando" class="botao-salvar">
+        Salvar alterações
+      </ion-button>
+    </form>
+
+    @if (podeExcluirConta) {
+      <section class="zona-perigo">
+        <h2 class="zona-perigo-titulo">Excluir conta</h2>
+        <p class="zona-perigo-texto">
+          Isso remove sua conta e todas as crianças cadastradas nela, junto com o histórico vacinal. Essa ação não pode ser desfeita.
+        </p>
+        <ion-button
+          expand="block"
+          shape="round"
+          fill="outline"
+          color="danger"
+          (click)="pedirConfirmacaoExclusao()"
+        >
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Excluir minha conta
+        </ion-button>
+      </section>
+    }
+  </div>
+</ion-content>
+
+<ion-alert
+  [isOpen]="confirmandoExclusao"
+  header="Excluir conta"
+  message="Tem certeza? Sua conta e todas as crianças cadastradas serão removidas permanentemente."
+  [buttons]="[
+    { text: 'Cancelar', role: 'cancel' },
+    { text: 'Excluir', role: 'confirm' }
+  ]"
+  (didDismiss)="aoFecharConfirmacaoExclusao($event)"
+></ion-alert>

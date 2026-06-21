@@ -18,7 +18,29 @@
       } @else {
         <div class="lista-campanhas">
           @for (campanha of campanhas; track campanha.id) {
-            <article class="card-campanha" [class.card-campanha--ativa]="estaAtiva(campanha)">
+            <!-- Pro admin, o card inteiro é clicável e abre a edição da
+                 campanha; pra um responsável comum, é só leitura mesmo
+                 (sem link nenhum) — o layout do card não muda em nenhum
+                 dos dois casos, só o comportamento de clique. -->
+            <article
+              class="card-campanha"
+              [class.card-campanha--ativa]="estaAtiva(campanha)"
+              [class.card-campanha--clicavel]="ehAdmin"
+              [attr.role]="ehAdmin ? 'button' : null"
+              [attr.tabindex]="ehAdmin ? 0 : null"
+              (click)="ehAdmin && abrirEdicao(campanha)"
+            >
+              @if (ehAdmin) {
+                <button
+                  type="button"
+                  class="botao-remover"
+                  (click)="pedirConfirmacaoRemover(campanha, $event)"
+                  aria-label="Remover campanha"
+                >
+                  <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                </button>
+              }
+
               <div class="card-campanha-icone">
                 <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
               </div>
@@ -44,4 +66,25 @@
       }
     }
   </div>
+
+  <!-- Ícone de criar campanha — só aparece pro admin, mesmo padrão visual
+       do FAB de "adicionar criança" na tela inicial. -->
+  @if (ehAdmin) {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button routerLink="/campanhas/nova" color="secondary" aria-label="Adicionar campanha">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>
+
+<ion-alert
+  [isOpen]="campanhaParaRemover !== null"
+  header="Remover campanha"
+  [message]="campanhaParaRemover ? ('Remover \'' + campanhaParaRemover.titulo + '\'? Essa ação não pode ser desfeita.') : ''"
+  [buttons]="[
+    { text: 'Cancelar', role: 'cancel' },
+    { text: 'Remover', role: 'confirm' }
+  ]"
+  (didDismiss)="aoFecharConfirmacaoRemover($event)"
+></ion-alert>

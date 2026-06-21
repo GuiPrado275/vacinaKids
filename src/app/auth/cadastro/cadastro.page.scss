@@ -1,18 +1,15 @@
-.login-content {
+.cadastro-content {
   --background: var(--ion-color-light);
 }
 
-.login-layout {
+.cadastro-layout {
   min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-// ---------------------------------------------------------------------------
-// Lado de apresentação (visível só em telas largas — ver media query no fim)
-// ---------------------------------------------------------------------------
-.login-apresentacao {
+.cadastro-apresentacao {
   display: none;
 }
 
@@ -49,7 +46,6 @@
   margin: 0 0 2.5rem;
 }
 
-// Tiras coloridas com as 4 cores obrigatórias — o "índice de carteirinha"
 .tiras-cor {
   display: flex;
   gap: 0.5rem;
@@ -67,10 +63,7 @@
   .tira--dark { background: var(--ion-color-dark); }
 }
 
-// ---------------------------------------------------------------------------
-// Cartão de login
-// ---------------------------------------------------------------------------
-.login-cartao {
+.cadastro-cartao {
   width: 100%;
   max-width: 26rem;
   margin: 0 auto;
@@ -133,22 +126,7 @@
   }
 }
 
-.mensagem-sucesso {
-  display: block;
-  margin: 0 0 1.25rem;
-  background: color-mix(in srgb, var(--ion-color-primary) 16%, white);
-  border-radius: 0.65rem;
-  padding: 0.65rem 0.85rem;
-
-  p {
-    margin: 0;
-    font-size: 0.82rem;
-    color: var(--ion-color-primary-shade);
-    line-height: 1.4;
-  }
-}
-
-.botao-entrar {
+.botao-cadastrar {
   --background: var(--ion-color-primary);
   --color: var(--ion-color-primary-contrast);
   --background-activated: var(--ion-color-primary-shade);
@@ -157,56 +135,7 @@
   margin-top: 0.5rem;
 }
 
-.botao-demo {
-  --color: var(--ion-color-dark-tint);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-
-// ---------------------------------------------------------------------------
-// Responsividade — desktop/tablet ganham o painel de apresentação ao lado;
-// mobile mantém só o cartão, ocupando a tela inteira (foco total no form).
-// ---------------------------------------------------------------------------
-@media (min-width: 768px) {
-  .login-layout {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
-  .login-apresentacao {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1.1;
-    padding: 3rem 3rem 3rem 4rem;
-    background: linear-gradient(160deg, #f3efe2 0%, var(--ion-color-light) 60%);
-  }
-
-  .login-cartao {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    max-width: 28rem;
-    padding: 2rem 3rem;
-  }
-
-  .cartao-marca-mobile {
-    display: none;
-  }
-}
-
-@media (min-width: 1100px) {
-  .login-apresentacao {
-    padding-left: 6rem;
-  }
-
-  .apresentacao-titulo {
-    font-size: 2.75rem;
-  }
-}
-
-.link-cadastro {
+.link-login {
   text-align: center;
   margin-top: 12px;
   font-size: 0.875rem;
@@ -216,5 +145,45 @@
     color: var(--ion-color-primary);
     font-weight: 600;
     text-decoration: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .cadastro-layout {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .cadastro-apresentacao {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1.1;
+    padding: 3rem 3rem 3rem 4rem;
+    background: linear-gradient(160deg, #f3efe2 0%, var(--ion-color-light) 60%);
+  }
+
+  .cadastro-cartao {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 28rem;
+    padding: 2rem 3rem;
+    overflow-y: auto;
+  }
+
+  .cartao-marca-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .cadastro-apresentacao {
+    padding-left: 6rem;
+  }
+
+  .apresentacao-titulo {
+    font-size: 2.75rem;
   }
 }

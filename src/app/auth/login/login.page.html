@@ -6,7 +6,7 @@
          formulário, que é o que realmente importa numa tela pequena. -->
     <section class="login-apresentacao">
       <div class="marca">
-        <ion-icon name="syringe-outline" aria-hidden="true"></ion-icon>
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
         <span class="app-heading">Carteirinha</span>
       </div>
 
@@ -31,12 +31,18 @@
     <!-- Cartão de login -->
     <section class="login-cartao">
       <div class="cartao-marca-mobile">
-        <ion-icon name="syringe-outline" aria-hidden="true"></ion-icon>
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
         <span class="app-heading">Carteirinha</span>
       </div>
 
       <h2 class="app-heading cartao-titulo">Entrar</h2>
       <p class="cartao-subtitulo">Use o CPF cadastrado como responsável.</p>
+
+      @if (cadastroRecente) {
+        <ion-text class="mensagem-sucesso">
+          <p>Conta criada com sucesso! Entre com o CPF e a senha que você acabou de cadastrar.</p>
+        </ion-text>
+      }
 
       <form [formGroup]="form" (ngSubmit)="entrar()" novalidate>
         <ion-item lines="full" class="campo">
@@ -85,10 +91,10 @@
           Entrar
         </ion-button>
 
-        <ion-button type="button" expand="block" fill="clear" shape="round" (click)="preencherDemo()" class="botao-demo">
-          <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-          Usar conta de demonstração
-        </ion-button>
+        <p class="link-cadastro">
+          Não tem conta? <a routerLink="/cadastro">Cadastre-se</a>
+        </p>
+
       </form>
     </section>
   </div>

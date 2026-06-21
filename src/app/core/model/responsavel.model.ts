@@ -8,6 +8,10 @@ export interface Responsavel {
   senha: string;
   email?: string;
   telefone?: string;
+  // Marca a conta administradora (gestão de campanhas e de usuários).
+  // Só existe uma conta assim, criada já no seed do ResponsavelService —
+  // não há cadastro de admin pelo formulário público.
+  isAdmin?: boolean;
 }
 
 export type ResponsavelForm = Omit<Responsavel, 'id'>;

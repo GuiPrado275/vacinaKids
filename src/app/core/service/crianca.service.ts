@@ -6,7 +6,7 @@ import { Crianca, CriancaForm } from '../model/crianca.model';
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { RegistroVacinalService } from './registro-vacinal.service';
-import { normalizarCpf, validarCpf } from '../util/cpf.util';
+import { normalizarCpf } from '../util/cpf.util';
 
 const CHAVE_STORAGE = 'vacina_app_criancas';
 
@@ -82,6 +82,13 @@ export class CriancaService {
     return this.criancas$$.value.find((crianca) => crianca.id === id);
   }
 
+  // Versão síncrona, sem filtrar pelo responsável logado — usada na tela
+  // de gerenciamento de usuários (admin), que precisa contar quantas
+  // crianças cada responsável do sistema tem, não só as da própria conta.
+  contarPorResponsavel(responsavelId: string): number {
+    return this.criancas$$.value.filter((crianca) => crianca.responsavelId === responsavelId).length;
+  }
+
   buscarPorCpf(cpf: string): Crianca | undefined {
     const cpfNormalizado = normalizarCpf(cpf);
     return this.criancas$$.value.find((crianca) => crianca.cpf === cpfNormalizado);
@@ -101,8 +108,8 @@ export class CriancaService {
 
     const cpfNormalizado = normalizarCpf(dados.cpf);
 
-    if (!validarCpf(cpfNormalizado)) {
-      throw new Error('CPF inválido.');
+    if (cpfNormalizado.length !== 11) {
+      throw new Error('CPF inválido. Informe os 11 dígitos.');
     }
 
     if (this.buscarPorCpf(cpfNormalizado)) {
@@ -138,6 +145,20 @@ export class CriancaService {
     this.criancas$$.next(this.criancas$$.value.filter((crianca) => crianca.id !== id));
     this.persistir();
     this.registroVacinalService.removerPorCrianca(id);
+  }
+
+  // Remove TODAS as crianças de um responsável de uma vez (e os
+  // respectivos registros vacinais, via remover() de cada uma). Usado
+  // quando a própria conta é excluída (EditarUsuarioPage) ou quando o
+  // admin remove um usuário pela tela de gerenciamento — centralizado
+  // aqui em vez de cada tela reimplementar esse "filtra e remove uma por
+  // uma", já que as duas situações precisam do mesmo comportamento.
+  removerPorResponsavel(responsavelId: string): void {
+    const idsParaRemover = this.criancas$$.value
+      .filter((crianca) => crianca.responsavelId === responsavelId)
+      .map((crianca) => crianca.id);
+
+    idsParaRemover.forEach((id) => this.remover(id));
   }
 
   private persistir(): void {

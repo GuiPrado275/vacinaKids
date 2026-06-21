@@ -1,0 +1,61 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/criancas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-heading">Gerenciamento de usuários</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="gerenciamento-content">
+  <div class="pagina">
+    @if (erro) {
+      <p class="mensagem-erro">{{ erro }}</p>
+    }
+
+    @if ((usuariosOrdenados$ | async); as usuarios) {
+      @if (usuarios.length === 0) {
+        <div class="estado-vazio">
+          <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+          <p>Nenhum usuário cadastrado além do administrador.</p>
+        </div>
+      } @else {
+        <div class="lista-usuarios">
+          @for (item of usuarios; track item.responsavel.id) {
+            <article class="card-usuario">
+              <div class="card-usuario-avatar">
+                {{ item.responsavel.nome.charAt(0) }}
+              </div>
+              <div class="card-usuario-info">
+                <strong>{{ item.responsavel.nome }}</strong>
+                <span class="card-usuario-cpf">{{ formatarCpfExibicao(item.responsavel.cpf) }}</span>
+                <span class="card-usuario-criancas">
+                  {{ item.totalCriancas }} {{ item.totalCriancas === 1 ? 'criança cadastrada' : 'crianças cadastradas' }}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="botao-remover"
+                (click)="pedirConfirmacaoRemover(item.responsavel)"
+                aria-label="Remover usuário"
+              >
+                <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+              </button>
+            </article>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>
+
+<ion-alert
+  [isOpen]="usuarioParaRemover !== null"
+  header="Remover usuário"
+  [message]="usuarioParaRemover ? ('Remover \'' + usuarioParaRemover.nome + '\'? Todas as crianças cadastradas por ele também serão removidas. Essa ação não pode ser desfeita.') : ''"
+  [buttons]="[
+    { text: 'Cancelar', role: 'cancel' },
+    { text: 'Remover', role: 'confirm' }
+  ]"
+  (didDismiss)="aoFecharConfirmacaoRemover($event)"
+></ion-alert>

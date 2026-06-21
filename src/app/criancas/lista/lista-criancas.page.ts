@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Observable, combineLatest, map, switchMap } from 'rxjs';
 import {
   IonHeader,
@@ -14,7 +14,7 @@ import {
   IonFabButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline } from 'ionicons/icons';
+import { logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline } from 'ionicons/icons';
 
 import { AuthService } from '../../core/service/auth.service';
 import { CriancaService } from '../../core/service/crianca.service';
@@ -58,11 +58,16 @@ interface CriancaComResumo {
 })
 export class ListaCriancasPage {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly criancaService = inject(CriancaService);
   private readonly campanhaService = inject(CampanhaService);
   private readonly registroVacinalService = inject(RegistroVacinalService);
 
   protected readonly StatusVacina = StatusVacina;
+
+  // Calculado uma vez — a sessão não muda dentro dessa tela (o authGuard
+  // já cuida de tirar a pessoa daqui se ela deslogar).
+  protected readonly ehAdmin = this.authService.ehAdmin();
 
   protected readonly nomeResponsavel$ = this.authService
     .responsavelLogado()
@@ -100,11 +105,12 @@ export class ListaCriancasPage {
   );
 
   constructor() {
-    addIcons({ logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline });
+    addIcons({ logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline });
   }
 
   protected sair(): void {
     this.authService.logout();
+    this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
   // Texto curto de idade ("3 meses" / "2 anos e 3 meses") em vez de só o

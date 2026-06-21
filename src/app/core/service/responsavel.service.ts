@@ -1,130 +1,184 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Auth, createUserWithEmailAndPassword, signOut, deleteUser } from '@angular/fire/auth';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  docData,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 
-import { Responsavel, ResponsavelForm } from '../model/responsavel.model';
-import { StorageService } from './storage.service';
-import { normalizarCpf } from '../util/cpf.util';
+import { Responsavel, ResponsavelForm, ResponsavelPerfil } from '../model/responsavel.model';
+import { normalizarCpf, cpfParaEmailSintetico } from '../util/cpf.util';
 
-const CHAVE_STORAGE = 'vacina_app_responsaveis';
+const NOME_COLECAO = 'responsaveis';
 
 // Cadastro dos responsáveis (pode existir vários, cada um é uma "conta"
-// diferente). Esse service cuida só dos dados (CRUD) — quem decide "quem
-// está logado agora" é o AuthService, de propósito separado daqui, pra
-// não misturar cadastro com sessão.
+// diferente). Esse service cuida do PERFIL (documento no Firestore,
+// coleção `responsaveis`) — quem cuida da CREDENCIAL (e-mail sintético +
+// senha) e da sessão ativa é o AuthService (Firebase Auth), de propósito
+// separado daqui.
+//
+// MIGRAÇÃO PRA FIREBASE: cada documento dessa coleção tem como ID o
+// mesmo "uid" da conta correspondente no Firebase Auth — é assim que os
+// dois ficam ligados. Não existe mais "lista em memória + localStorage";
+// cada leitura/escrita aqui é uma chamada real ao Firestore.
 @Injectable({ providedIn: 'root' })
-class ResponsavelService {
-  private readonly responsaveis$$: BehaviorSubject<Responsavel[]>;
+export class ResponsavelService {
+  private readonly firestore = inject(Firestore);
+  private readonly auth = inject(Auth);
 
-  constructor(private storage: StorageService) {
-    this.responsaveis$$ = new BehaviorSubject<Responsavel[]>(
-      this.storage.obter<Responsavel[]>(CHAVE_STORAGE) ?? this.responsaveisIniciais()
-    );
-  }
+  private readonly colecaoRef = collection(this.firestore, NOME_COLECAO);
 
-  // Um responsável de exemplo já cadastrado, pra dar pra testar o login
-  // (e ver as crianças de exemplo) sem precisar criar uma conta antes.
-  // CPF e senha de teste: 123.456.789-09 / 123456 (vale colocar isso no
-  // README de entrega do desafio).
-  //
-  // Além dele, a conta administradora também nasce aqui no seed (não tem
-  // formulário de cadastro de admin — só essa conta fixa mesmo).
-  // CPF: 111.111.111-11 / senha: admin123.
-  private responsaveisIniciais(): Responsavel[] {
-    return [
-      {
-        id: 'resp-1',
-        nome: 'Responsável Demo',
-        cpf: '12345678909',
-        senha: '123456',
-        email: 'demo@email.com',
-      },
-      {
-        id: 'resp-admin',
-        nome: 'Administrador',
-        cpf: '11111111111',
-        senha: 'admin123',
-        isAdmin: true,
-      },
-    ];
-  }
-
+  // Stream reativo de TODOS os responsáveis — usado na tela de
+  // gerenciamento de usuários (admin). As regras de segurança do
+  // Firestore (ver firestore.rules) são quem realmente garante que só o
+  // admin consegue ler a coleção inteira; aqui é só a query.
   listar(): Observable<Responsavel[]> {
-    return this.responsaveis$$.asObservable();
+    return collectionData(this.colecaoRef, { idField: 'id' }) as Observable<Responsavel[]>;
   }
 
-  buscarPorId(id: string): Responsavel | undefined {
-    return this.responsaveis$$.value.find((responsavel) => responsavel.id === id);
+  // Versão Observable de buscarPorId, usada pelo AuthService pra manter
+  // o cache de sessão sincronizado com o Firestore em tempo real (ex.: se
+  // o admin editar o perfil de alguém, ou os dados do próprio usuário
+  // mudarem em outra aba, o cache local acompanha automaticamente).
+  buscarPorIdObservable(id: string): Observable<Responsavel | undefined> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    return docData(ref, { idField: 'id' }) as Observable<Responsavel | undefined>;
   }
 
-  // O CPF é normalizado (só números) antes de comparar, assim não importa
-  // se quem está chamando digitou com ponto/traço ou não.
-  buscarPorCpf(cpf: string): Responsavel | undefined {
+  // Versão Promise, pra fluxos pontuais (login, por exemplo) que só
+  // precisam ler uma vez, sem ficar inscrito esperando atualizações.
+  async buscarPorId(id: string): Promise<Responsavel | undefined> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    const snapshot = await getDoc(ref);
+    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Responsavel) : undefined;
+  }
+
+  // IMPORTANTE: essa busca só funciona pra ADMIN (regras do Firestore
+  // restringem listar/consultar toda a coleção responsaveis a quem tem
+  // isAdmin == true — ver firestore.rules). Por isso não é usada mais
+  // dentro de `cadastrar()` pra checar duplicidade: o próprio
+  // createUserWithEmailAndPassword já rejeita CPF repetido naturalmente
+  // (o e-mail sintético é derivado do CPF, então CPF duplicado = e-mail
+  // duplicado pro Firebase Auth — ver tratamento de
+  // 'auth/email-already-in-use' em `cadastrar`). Esse método continua
+  // disponível só pra uso administrativo futuro, se precisar.
+  async buscarPorCpf(cpf: string): Promise<Responsavel | undefined> {
     const cpfNormalizado = normalizarCpf(cpf);
-    return this.responsaveis$$.value.find((responsavel) => responsavel.cpf === cpfNormalizado);
+    const consulta = query(this.colecaoRef, where('cpf', '==', cpfNormalizado));
+    const snapshot = await getDocs(consulta);
+    if (snapshot.empty) return undefined;
+    const primeiro = snapshot.docs[0];
+    return { id: primeiro.id, ...primeiro.data() } as Responsavel;
   }
 
-  // Cadastra um novo responsável. Valida o CPF (formato + dígitos
-  // verificadores) e garante que não existem dois responsáveis com o
-  // mesmo CPF, já que é o CPF que identifica a conta no login.
-  cadastrar(dados: ResponsavelForm): Responsavel {
+  // Cadastra um novo responsável: cria a CONTA no Firebase Auth (e-mail
+  // sintético a partir do CPF + senha) e, com o uid gerado, cria o
+  // documento de PERFIL correspondente no Firestore — as duas coisas
+  // precisam acontecer juntas, ou a conta fica "pela metade".
+  //
+  // Efeito colateral do Firebase: createUserWithEmailAndPassword loga
+  // automaticamente a pessoa que acabou de se cadastrar nesse navegador.
+  // Como o app quer mandar pra tela de LOGIN depois do cadastro (não
+  // entrar direto, ver CadastroPage), deslogamos logo em seguida — a
+  // pessoa precisa digitar a senha de novo, igual qualquer app real.
+  //
+  // IMPORTANTE: de propósito NÃO checa duplicidade de CPF chamando
+  // buscarPorCpf antes — isso exigiria listar a coleção inteira, e as
+  // regras de segurança só liberam isso pro admin (ver comentário acima).
+  // A checagem de duplicidade acontece de forma natural: como o e-mail
+  // sintético é derivado do CPF, CPF repetido vira e-mail repetido, e o
+  // Firebase Auth rejeita com 'auth/email-already-in-use' (tratado no
+  // catch abaixo) antes de qualquer escrita no Firestore.
+  async cadastrar(dados: ResponsavelForm): Promise<Responsavel> {
     const cpfNormalizado = normalizarCpf(dados.cpf);
 
     if (cpfNormalizado.length !== 11) {
       throw new Error('CPF inválido. Informe os 11 dígitos.');
     }
 
-    if (this.buscarPorCpf(cpfNormalizado)) {
-      throw new Error('Já existe um responsável cadastrado com esse CPF.');
+    const email = cpfParaEmailSintetico(cpfNormalizado);
+
+    let uid: string;
+    try {
+      const credencial = await createUserWithEmailAndPassword(this.auth, email, dados.senha);
+      uid = credencial.user.uid;
+    } catch (erro: any) {
+      if (erro?.code === 'auth/email-already-in-use') {
+        // Não deveria acontecer (já checamos buscarPorCpf acima), mas se
+        // o Auth e o Firestore ficaram dessincronizados por algum motivo
+        // anterior, essa mensagem é mais clara que o erro cru do Firebase.
+        throw new Error('Já existe um responsável cadastrado com esse CPF.');
+      }
+      if (erro?.code === 'auth/weak-password') {
+        throw new Error('A senha precisa ter pelo menos 6 caracteres.');
+      }
+      throw erro instanceof Error ? erro : new Error('Não foi possível concluir o cadastro.');
     }
 
-    const novoResponsavel: Responsavel = {
-      ...dados,
+    const perfil: ResponsavelPerfil = {
+      nome: dados.nome,
       cpf: cpfNormalizado,
-      id: crypto.randomUUID(),
+      email: dados.email,
+      telefone: dados.telefone,
     };
 
-    this.responsaveis$$.next([...this.responsaveis$$.value, novoResponsavel]);
-    this.persistir();
+    const ref = doc(this.firestore, NOME_COLECAO, uid);
+    try {
+      await setDoc(ref, perfil);
+    } catch (erro) {
+      // Se o documento de perfil não puder ser criado (ex.: regra de
+      // segurança recusou, ou a conexão caiu nesse meio tempo), a conta
+      // no Firebase Auth ficaria "órfã" — criada, mas sem perfil, o que
+      // impediria login pra sempre (ver AuthService.login, que falha sem
+      // perfil). Como o SDK do navegador só pode excluir a PRÓPRIA conta
+      // (e é exatamente quem está logado nesse momento, recém-criado),
+      // desfazemos a criação aqui pra não deixar lixo no Authentication.
+      await deleteUser(this.auth.currentUser!);
+      throw new Error('Não foi possível concluir o cadastro. Tente novamente.');
+    }
 
-    return novoResponsavel;
+    // Ver comentário no topo do método: de propósito não fica logado.
+    await signOut(this.auth);
+
+    return { id: uid, ...perfil };
   }
 
-  atualizar(id: string, dados: Partial<ResponsavelForm>): void {
-    const lista = this.responsaveis$$.value.map((responsavel) =>
-      responsavel.id === id
-        ? { ...responsavel, ...dados, cpf: dados.cpf ? normalizarCpf(dados.cpf) : responsavel.cpf }
-        : responsavel
-    );
-    this.responsaveis$$.next(lista);
-    this.persistir();
+  // Atualiza só o documento de PERFIL (Firestore) — nome, e-mail,
+  // telefone. Troca de SENHA é responsabilidade do AuthService
+  // (atualizarSenha), porque senha mora no Firebase Auth, não aqui.
+  async atualizar(id: string, dados: Partial<Omit<ResponsavelPerfil, 'cpf'>>): Promise<void> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    await updateDoc(ref, { ...dados });
   }
 
-  // Remoção simples do responsável - de propósito, esse método não apaga
-  // as crianças dele. Se o ResponsavelService dependesse do CriancaService
-  // pra fazer essa limpeza, e o CriancaService precisa saber quem está
-  // logado (depende do AuthService, que por sua vez depende deste
-  // service), criaríamos uma dependência circular entre os services.
-  // Por isso, excluir a conta E as crianças junto é orquestrado por quem
-  // chama os dois services (uma tela de "excluir conta", por exemplo),
-  // não por um service chamando o outro.
+  // Remove só o documento de PERFIL (Firestore). A CONTA (Firebase Auth)
+  // é removida separadamente — ver AuthService.excluirConta, pra
+  // auto-exclusão, e o comentário em GerenciamentoUsuariosPage sobre a
+  // limitação de o admin não conseguir apagar a conta de outra pessoa no
+  // Auth a partir do navegador (isso exige Admin SDK / Cloud Functions).
   //
   // Proteção extra: a conta admin nunca é removida por aqui, mesmo que
   // alguém tente chamar isso direto (ex.: bug de UI). A tela de "excluir
   // conta" já nem mostra a opção pro admin, mas a regra de negócio real
-  // mora aqui, não só na UI.
-  remover(id: string): void {
-    const responsavel = this.buscarPorId(id);
+  // mora aqui, não só na UI. As regras de segurança do Firestore (ver
+  // firestore.rules) reforçam essa mesma trava no lado do servidor.
+  async remover(id: string): Promise<void> {
+    const responsavel = await this.buscarPorId(id);
     if (responsavel?.isAdmin) {
       throw new Error('A conta de administrador não pode ser removida.');
     }
 
-    this.responsaveis$$.next(this.responsaveis$$.value.filter((responsavel) => responsavel.id !== id));
-    this.persistir();
-  }
-
-  private persistir(): void {
-    this.storage.salvar(CHAVE_STORAGE, this.responsaveis$$.value);
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    await deleteDoc(ref);
   }
 }
-
-export default ResponsavelService

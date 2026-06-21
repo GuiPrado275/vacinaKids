@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Observable, map, switchMap, of } from 'rxjs';
+import { Observable, map, switchMap, of, combineLatest } from 'rxjs';
 import {
   IonHeader,
   IonToolbar,
@@ -66,20 +66,30 @@ export class DetalheCriancaPage {
   protected readonly StatusVacina = StatusVacina;
   protected registroParaConfirmar: RegistroDetalhado | null = null;
 
+  // MIGRAÇÃO PRA FIREBASE: usa buscarPorIdObservable (reativo, em tempo
+  // real) em vez de um buscarPorId síncrono — o documento da criança no
+  // Firestore pode demorar um instante pra chegar, e combineLatest junta
+  // ele com os registros vacinais assim que os dois estiverem disponíveis.
+  // Se a criança for removida nesse meio tempo (ou o id não existir),
+  // docData emite undefined e a tela mostra o estado vazio em vez de quebrar.
   protected readonly detalhe$: Observable<DetalheCrianca | null> = this.route.paramMap.pipe(
     map((params) => params.get('id')),
     switchMap((id) => {
       if (!id) return of(null);
-      const crianca = this.criancaService.buscarPorId(id);
-      if (!crianca) return of(null);
 
-      return this.registroVacinalService.listarDetalhadoPorCrianca(id).pipe(
-        map((registros) => ({
-          crianca,
-          idadeEmMeses: calcularIdadeEmMeses(crianca.dataNascimento),
-          resumo: this.calcularResumo(registros),
-          grupos: this.agruparPorIdade(registros),
-        }))
+      return combineLatest([
+        this.criancaService.buscarPorIdObservable(id),
+        this.registroVacinalService.listarDetalhadoPorCrianca(id),
+      ]).pipe(
+        map(([crianca, registros]) => {
+          if (!crianca) return null;
+          return {
+            crianca,
+            idadeEmMeses: calcularIdadeEmMeses(crianca.dataNascimento),
+            resumo: this.calcularResumo(registros),
+            grupos: this.agruparPorIdade(registros),
+          };
+        })
       );
     })
   );
@@ -145,7 +155,7 @@ export class DetalheCriancaPage {
   // Único handler pro didDismiss do ion-alert: cobre tanto "Cancelar"
   // quanto fechar clicando fora (backdrop), que também dispara esse
   // evento com role indefinido — nesses casos só fechamos sem aplicar.
-  protected aoFecharConfirmacao(evento: CustomEvent): void {
+  protected async aoFecharConfirmacao(evento: CustomEvent): Promise<void> {
     const role = evento.detail?.role;
     const registro = this.registroParaConfirmar;
 
@@ -154,7 +164,7 @@ export class DetalheCriancaPage {
     if (role === 'confirm' && registro) {
       const hoje = new Date().toISOString().slice(0, 10);
       try {
-        this.registroVacinalService.registrarAplicacao(registro.id, hoje);
+        await this.registroVacinalService.registrarAplicacao(registro.id, hoje);
       } catch {
         // Na prática não deve acontecer (o botão já vem desabilitado pra
         // vacina futura), mas se acontecer, simplesmente não aplica —
@@ -163,8 +173,8 @@ export class DetalheCriancaPage {
     }
   }
 
-  protected desfazerAplicacao(registro: RegistroDetalhado): void {
-    this.registroVacinalService.desfazerAplicacao(registro.id);
+  protected async desfazerAplicacao(registro: RegistroDetalhado): Promise<void> {
+    await this.registroVacinalService.desfazerAplicacao(registro.id);
   }
 
   protected formatarData(data: string | null): string {

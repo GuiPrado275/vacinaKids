@@ -65,9 +65,11 @@ export class ListaCriancasPage {
 
   protected readonly StatusVacina = StatusVacina;
 
-  // Calculado uma vez — a sessão não muda dentro dessa tela (o authGuard
-  // já cuida de tirar a pessoa daqui se ela deslogar).
-  protected readonly ehAdmin = this.authService.ehAdmin();
+  // MIGRAÇÃO PRA FIREBASE: propriedade síncrona simples (o template usa
+  // só num lugar, mas mantemos o mesmo padrão de CampanhasPage por
+  // consistência), sincronizada via subscribe ao Observable de sessão —
+  // ver comentário equivalente em CampanhasPage.ehAdmin.
+  protected ehAdmin = this.authService.ehAdmin();
 
   protected readonly nomeResponsavel$ = this.authService
     .responsavelLogado()
@@ -106,10 +108,17 @@ export class ListaCriancasPage {
 
   constructor() {
     addIcons({ logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline });
+    this.authService.responsavelLogado().subscribe((responsavel) => {
+      this.ehAdmin = responsavel?.isAdmin === true;
+    });
   }
 
-  protected sair(): void {
-    this.authService.logout();
+  // MIGRAÇÃO PRA FIREBASE: logout agora é assíncrono (signOut do Firebase
+  // Auth) — esperamos completar antes de navegar pro /login, pra evitar
+  // qualquer corrida entre "a navegação já aconteceu" e "o token ainda
+  // não foi invalidado de fato".
+  protected async sair(): Promise<void> {
+    await this.authService.logout();
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 

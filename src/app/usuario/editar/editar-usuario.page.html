@@ -74,6 +74,28 @@
         </ion-input>
       </ion-item>
 
+      @if (form.controls.novaSenha.value) {
+        <!-- Por segurança, o Firebase exige confirmar a senha atual pra
+             trocar a senha — só aparece quando a pessoa de fato está
+             tentando definir uma nova senha. -->
+        <ion-item lines="full" class="campo">
+          <ion-input
+            label="Senha atual"
+            labelPlacement="stacked"
+            [type]="senhaAtualVisivel ? 'text' : 'password'"
+            placeholder="Confirme sua senha atual"
+            formControlName="senhaAtualParaSenha"
+          >
+            <ion-icon
+              slot="end"
+              [name]="senhaAtualVisivel ? 'eye-off-outline' : 'eye-outline'"
+              (click)="senhaAtualVisivel = !senhaAtualVisivel"
+              class="icone-olho"
+            ></ion-icon>
+          </ion-input>
+        </ion-item>
+      }
+
       @if (senhasNaoCoincidem) {
         <ion-text color="danger" class="mensagem-erro">
           <p>As senhas não coincidem.</p>
@@ -118,13 +140,55 @@
   </div>
 </ion-content>
 
-<ion-alert
-  [isOpen]="confirmandoExclusao"
-  header="Excluir conta"
-  message="Tem certeza? Sua conta e todas as crianças cadastradas serão removidas permanentemente."
-  [buttons]="[
-    { text: 'Cancelar', role: 'cancel' },
-    { text: 'Excluir', role: 'confirm' }
-  ]"
-  (didDismiss)="aoFecharConfirmacaoExclusao($event)"
-></ion-alert>
+<ion-modal [isOpen]="confirmandoExclusao" (didDismiss)="cancelarExclusao()">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title class="app-heading">Excluir conta</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cancelarExclusao()">Fechar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="editar-usuario-content">
+      <div class="pagina">
+        <p class="introducao">
+          Isso remove sua conta e todas as crianças cadastradas nela, junto com o histórico vacinal. Essa ação não pode ser desfeita. Confirme sua senha atual para continuar.
+        </p>
+
+        <form [formGroup]="formExclusao" (ngSubmit)="confirmarExclusao()" novalidate>
+          <ion-item lines="full" class="campo">
+            <ion-input
+              label="Senha atual"
+              labelPlacement="stacked"
+              [type]="senhaExclusaoVisivel ? 'text' : 'password'"
+              placeholder="Digite sua senha"
+              formControlName="senhaAtual"
+              errorText="Informe sua senha atual"
+              [class.ion-invalid]="formExclusao.controls.senhaAtual.touched && formExclusao.controls.senhaAtual.invalid"
+              [class.ion-touched]="formExclusao.controls.senhaAtual.touched"
+            >
+              <ion-icon
+                slot="end"
+                [name]="senhaExclusaoVisivel ? 'eye-off-outline' : 'eye-outline'"
+                (click)="senhaExclusaoVisivel = !senhaExclusaoVisivel"
+                class="icone-olho"
+              ></ion-icon>
+            </ion-input>
+          </ion-item>
+
+          @if (erroExclusao) {
+            <ion-text color="danger" class="mensagem-erro">
+              <p>{{ erroExclusao }}</p>
+            </ion-text>
+          }
+
+          <ion-button type="submit" expand="block" shape="round" fill="solid" color="danger" [disabled]="excluindo">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Confirmar exclusão
+          </ion-button>
+        </form>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

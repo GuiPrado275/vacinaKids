@@ -1,0 +1,170 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore para o app de carteira de vacinação.
+//
+// COMO APLICAR: Firebase Console > Build > Firestore Database > aba "Rules"
+// > cole este arquivo inteiro no lugar do conteúdo atual > Publish.
+//
+// MODELO GERAL:
+// - `responsaveis/{id}`: cada documento representa uma conta (perfil).
+//   O {id} do documento é sempre o mesmo "uid" da conta no Firebase Auth.
+// - `criancas/{id}`: cada criança pertence a um responsável, via campo
+//   `responsavelId` apontando pro uid dele.
+// - `registrosVacinais/{id}`: cada registro pertence a uma criança (campo
+//   `criancaId`) e tem uma CÓPIA do responsavelId dela (campo
+//   `responsavelId`, desnormalizado de propósito — ver model
+//   RegistroVacinal — pra permitir queries de "list" seguras e baratas,
+//   sem precisar de get() extra por documento).
+// - `campanhas/{id}`: informação pública (qualquer responsável logado lê),
+//   mas só o admin cria/edita/remove.
+//
+// PRINCÍPIO GERAL: cada responsável só lê/escreve os PRÓPRIOS dados
+// (request.auth.uid == dono). O admin (isAdmin == true no próprio
+// documento dele em /responsaveis) tem acesso mais amplo, necessário pra
+// gerenciar usuários e campanhas.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Função auxiliar: confere se quem está fazendo a requisição é o
+    // administrador, lendo o PRÓPRIO documento em /responsaveis (nunca o
+    // documento de outra pessoa, pra evitar uma forma de descobrir se
+    // outra conta é admin). `exists()` evita que `get()` lance erro caso
+    // o documento não exista por algum motivo (ex.: sessão órfã).
+    function ehAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/responsaveis/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/responsaveis/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    // -----------------------------------------------------------------
+    // responsaveis/{responsavelId}
+    // -----------------------------------------------------------------
+    match /responsaveis/{responsavelId} {
+      // Ler o PRÓPRIO documento: qualquer pessoa logada. Ler documento de
+      // outra pessoa: só admin (necessário pra tela de gerenciamento de
+      // usuários, que lista todo mundo).
+      allow get: if estaLogado() && (request.auth.uid == responsavelId || ehAdmin());
+      allow list: if ehAdmin();
+
+      // Criar: só durante o cadastro — a pessoa só pode criar o PRÓPRIO
+      // documento (id == seu uid), nunca em nome de outra conta. Isso
+      // acontece logo depois do createUserWithEmailAndPassword, quando a
+      // pessoa já está autenticada com aquele uid específico.
+      allow create: if estaLogado() && request.auth.uid == responsavelId
+        // isAdmin nunca pode ser auto-atribuído no cadastro público —
+        // só existe um admin, provisionado manualmente (ver
+        // documentação do projeto).
+        && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false);
+
+      // Atualizar: a própria pessoa pode editar o próprio perfil (nome,
+      // e-mail, telefone), mas NUNCA pode se autopromover a admin nem
+      // mudar o CPF por essa via. O admin também pode atualizar qualquer
+      // perfil (uso administrativo).
+      allow update: if estaLogado() &&
+        (
+          (request.auth.uid == responsavelId &&
+            request.resource.data.isAdmin == resource.data.isAdmin &&
+            request.resource.data.cpf == resource.data.cpf)
+          || ehAdmin()
+        );
+
+      // Remover: a própria pessoa pode excluir a própria conta, ou o
+      // admin pode remover qualquer conta — EXCETO a conta admin em si
+      // (mesma trava que já existe no código do ResponsavelService,
+      // reforçada aqui no lado do servidor).
+      allow delete: if estaLogado() && resource.data.isAdmin != true &&
+        (request.auth.uid == responsavelId || ehAdmin());
+    }
+
+    // -----------------------------------------------------------------
+    // criancas/{criancaId}
+    // -----------------------------------------------------------------
+    match /criancas/{criancaId} {
+      // Ler: o dono da criança, ou o admin (usado pra contar crianças por
+      // responsável na tela de gerenciamento de usuários).
+      allow get: if estaLogado() && (resource.data.responsavelId == request.auth.uid || ehAdmin());
+
+      // Listar (query): a QUERY em si precisa garantir que só pode
+      // retornar documentos onde responsavelId == quem está pedindo, ou
+      // ser feita pelo admin. Sem essa exigência, "list" seria permitido
+      // pra qualquer pessoa logada rodar uma query SEM filtro nenhum e
+      // ver as crianças de todo mundo — segurança não filtra resultado
+      // por resultado, ela aceita ou rejeita a QUERY INTEIRA (ver
+      // documentação oficial do Firestore sobre "queries are all or
+      // nothing"). Por isso o código (CriancaService.listar/buscarPorCpf)
+      // SEMPRE inclui where('responsavelId', '==', uid) nessas consultas
+      // — sem esse filtro na query, o Firestore recusa a requisição
+      // inteira mesmo que o uid "bateria" se checado individualmente.
+      allow list: if ehAdmin() || (estaLogado() && resource.data.responsavelId == request.auth.uid);
+
+      // Por causa da exigência acima, a checagem de "CPF de criança já
+      // cadastrado" no app (ver CriancaService.buscarPorCpf) também só
+      // enxerga crianças DENTRO da mesma conta. Decisão consciente pra
+      // não expor dados de crianças de outras contas só pra checar
+      // duplicidade global.
+
+      // Criar: só em nome de si mesmo (responsavelId == próprio uid) —
+      // impede que alguém crie uma criança "para" outro responsável.
+      allow create: if estaLogado() && request.resource.data.responsavelId == request.auth.uid;
+
+      // Atualizar: só o dono da criança (trocar de responsavelId não é
+      // uma operação que o app expõe, então nem checamos isso à parte).
+      allow update: if estaLogado() && resource.data.responsavelId == request.auth.uid;
+
+      // Remover: o dono da criança, OU o admin — esse último caso é
+      // necessário pra tela de gerenciamento de usuários, onde o admin
+      // remove um usuário e precisa limpar as crianças dele junto (ver
+      // CriancaService.removerPorResponsavel).
+      allow delete: if estaLogado() && (resource.data.responsavelId == request.auth.uid || ehAdmin());
+    }
+
+    // -----------------------------------------------------------------
+    // registrosVacinais/{registroId}
+    // -----------------------------------------------------------------
+    match /registrosVacinais/{registroId} {
+      // Cada registro guarda uma CÓPIA do responsavelId da criança dona
+      // dele (campo desnormalizado — ver comentário no model
+      // RegistroVacinal sobre por quê). Isso permite usar exatamente o
+      // mesmo padrão simples e barato das regras de /criancas, sem
+      // precisar de get() extra pra cada documento — o que seria caro
+      // (ou impossível dentro dos limites) numa query de "list" que pode
+      // retornar várias dezenas de registros de uma vez.
+      allow get: if estaLogado() && (resource.data.responsavelId == request.auth.uid || ehAdmin());
+
+      // Listar (query): mesma lógica de /criancas — a QUERY em si precisa
+      // garantir, via seu próprio filtro where, que só pode retornar
+      // documentos de responsavelId == quem está pedindo (ou ser feita
+      // pelo admin). O código (RegistroVacinalService.listarPorCrianca/
+      // removerPorCrianca) sempre inclui esse filtro.
+      allow list: if ehAdmin() || (estaLogado() && resource.data.responsavelId == request.auth.uid);
+
+      allow create: if estaLogado() && request.resource.data.responsavelId == request.auth.uid;
+      allow update: if estaLogado() && resource.data.responsavelId == request.auth.uid;
+
+      // Remover: o dono do registro, OU o admin — necessário pro mesmo
+      // fluxo de remoção em cascata explicado acima em /criancas (admin
+      // removendo um usuário inteiro, com seus registros vacinais).
+      allow delete: if estaLogado() && (resource.data.responsavelId == request.auth.uid || ehAdmin());
+    }
+
+    // -----------------------------------------------------------------
+    // campanhas/{campanhaId}
+    // -----------------------------------------------------------------
+    match /campanhas/{campanhaId} {
+      // Leitura pública pra qualquer pessoa logada (todo responsável
+      // precisa ver as campanhas ativas).
+      allow read: if estaLogado();
+
+      // Escrita (criar, editar, remover) só pro admin — reforça no
+      // servidor a mesma regra que já esconde o FAB/botões na UI pra
+      // quem não é admin (defesa em profundidade: mesmo manipulando o
+      // front-end, o Firestore recusaria a escrita).
+      allow create, update, delete: if ehAdmin();
+    }
+  }
+}

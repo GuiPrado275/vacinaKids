@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { map, take } from 'rxjs/operators';
 
 import { AuthService } from '../../core/service/auth.service';
 
@@ -12,17 +13,28 @@ import { AuthService } from '../../core/service/auth.service';
 // Se a pessoa está logada mas não é admin, manda pra a tela inicial
 // (/criancas) em vez de mostrar uma tela de erro — ela não fez nada de
 // errado, só não tem permissão pra essa área específica.
+//
+// MIGRAÇÃO PRA FIREBASE: usa o mesmo `sessao$` do authGuard — que só
+// emite depois que o usuário do Firebase Auth E o perfil correspondente
+// no Firestore (de onde vem `isAdmin`) já estão sincronizados entre si.
+// Isso evita o caso de barrar o próprio admin por engano só porque o
+// documento do Firestore ainda não tinha chegado quando o guard rodou.
 export const adminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (!authService.estaLogado()) {
-    return router.createUrlTree(['/login']);
-  }
+  return authService.sessao$.pipe(
+    take(1),
+    map(({ usuario, responsavel }) => {
+      if (!usuario) {
+        return router.createUrlTree(['/login']);
+      }
 
-  if (authService.ehAdmin()) {
-    return true;
-  }
+      if (responsavel?.isAdmin === true) {
+        return true;
+      }
 
-  return router.createUrlTree(['/criancas']);
+      return router.createUrlTree(['/criancas']);
+    })
+  );
 };

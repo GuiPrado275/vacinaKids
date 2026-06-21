@@ -54,3 +54,19 @@ export function validarCpf(cpf: string): boolean {
 
   return primeiroDigitoValido && segundoDigitoValido;
 }
+
+// O Firebase Authentication (modo Email/Password) exige um e-mail de
+// verdade pra cada conta, mas a tela de login do app continua pedindo
+// CPF — é a identidade que faz sentido pro responsável, não um e-mail
+// que ele talvez nem tenha. Esse "e-mail sintético" existe só pra
+// satisfazer o Firebase Auth por baixo dos panos; ele nunca aparece pra
+// pessoa nem é usado pra mandar e-mail de verdade nenhum.
+//
+// Importante: isso é diferente do campo Responsavel.email (que é o
+// e-mail real, opcional, editável em "Minha conta") — os dois nunca se
+// misturam.
+const DOMINIO_EMAIL_SINTETICO = 'carteirinha.app';
+
+export function cpfParaEmailSintetico(cpf: string): string {
+  return `${normalizarCpf(cpf)}@${DOMINIO_EMAIL_SINTETICO}`;
+}

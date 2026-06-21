@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { map } from 'rxjs';
+import { switchMap, from } from 'rxjs';
 import {
   IonHeader,
   IonToolbar,
@@ -14,7 +14,7 @@ import {
 import { addIcons } from 'ionicons';
 import { peopleOutline, trashOutline } from 'ionicons/icons';
 
-import ResponsavelService from '../../core/service/responsavel.service';
+import { ResponsavelService } from '../../core/service/responsavel.service';
 import { CriancaService } from '../../core/service/crianca.service';
 import { formatarCpf } from '../../core/util/cpf.util';
 import { Responsavel } from '../../core/model/responsavel.model';
@@ -50,18 +50,26 @@ export class GerenciamentoUsuariosPage {
   private readonly responsavelService = inject(ResponsavelService);
   private readonly criancaService = inject(CriancaService);
 
+  // MIGRAÇÃO PRA FIREBASE: contarPorResponsavel agora é assíncrono
+  // (Promise, uma consulta real ao Firestore), então não dá mais pra
+  // chamar direto dentro de um .map() síncrono — usamos switchMap pra
+  // trocar pro resultado da Promise.all assim que a lista de
+  // responsáveis chegar (ou mudar, já que collectionData é em tempo real).
   protected readonly usuariosOrdenados$ = this.responsavelService.listar().pipe(
-    map((responsaveis) =>
-      responsaveis
-        .filter((responsavel) => !responsavel.isAdmin)
-        .map(
-          (responsavel): UsuarioComContagem => ({
+    switchMap((responsaveis) => {
+      const naoAdmins = responsaveis.filter((responsavel) => !responsavel.isAdmin);
+
+      const comContagem = Promise.all(
+        naoAdmins.map(
+          async (responsavel): Promise<UsuarioComContagem> => ({
             responsavel,
-            totalCriancas: this.criancaService.contarPorResponsavel(responsavel.id),
+            totalCriancas: await this.criancaService.contarPorResponsavel(responsavel.id),
           })
         )
-        .sort((a, b) => a.responsavel.nome.localeCompare(b.responsavel.nome))
-    )
+      ).then((lista) => lista.sort((a, b) => a.responsavel.nome.localeCompare(b.responsavel.nome)));
+
+      return from(comContagem);
+    })
   );
 
   protected usuarioParaRemover: Responsavel | null = null;
@@ -83,8 +91,17 @@ export class GerenciamentoUsuariosPage {
   // Remove o usuário e, junto, todas as crianças dele (mesma regra
   // aplicada na auto-exclusão em EditarUsuarioPage, via
   // CriancaService.removerPorResponsavel) — um usuário removido não pode
-  // deixar crianças órfãs penduradas no storage.
-  protected aoFecharConfirmacaoRemover(evento: CustomEvent): void {
+  // deixar crianças órfãs penduradas no Firestore.
+  //
+  // Limitação conhecida: isso remove o PERFIL (Firestore), não a CONTA de
+  // login (Firebase Auth) — o SDK do navegador só permite que uma conta
+  // se delete a si mesma, nunca a de outra pessoa (isso exigiria o Admin
+  // SDK rodando num backend, ex. Cloud Functions). Na prática a conta
+  // continua "existindo" no Authentication mas vira inutilizável: sem
+  // documento de perfil, as regras de segurança do Firestore bloqueiam
+  // qualquer leitura/escrita pra esse usuário, então ele não consegue
+  // mais usar o app mesmo que tente logar de novo.
+  protected async aoFecharConfirmacaoRemover(evento: CustomEvent): Promise<void> {
     const role = evento.detail?.role;
     const responsavel = this.usuarioParaRemover;
 
@@ -95,8 +112,8 @@ export class GerenciamentoUsuariosPage {
     }
 
     try {
-      this.criancaService.removerPorResponsavel(responsavel.id);
-      this.responsavelService.remover(responsavel.id);
+      await this.criancaService.removerPorResponsavel(responsavel.id);
+      await this.responsavelService.remover(responsavel.id);
     } catch (e) {
       this.erro = e instanceof Error ? e.message : 'Não foi possível remover esse usuário.';
     }

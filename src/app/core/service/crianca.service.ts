@@ -1,14 +1,27 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  docData,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from '@angular/fire/firestore';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { Crianca, CriancaForm } from '../model/crianca.model';
-import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { RegistroVacinalService } from './registro-vacinal.service';
 import { normalizarCpf } from '../util/cpf.util';
 
-const CHAVE_STORAGE = 'vacina_app_criancas';
+const NOME_COLECAO = 'criancas';
 
 // O responsavelId não deve vir do formulário de cadastro — é o próprio
 // service que decide de quem é a criança, com base em quem está logado
@@ -28,70 +41,84 @@ export class NaoAutenticadoError extends Error {
   }
 }
 
+// MIGRAÇÃO PRA FIREBASE: cada criança é um documento na coleção
+// `criancas`, com um campo `responsavelId` apontando pro uid do
+// responsável dono dela (Firebase Auth). As regras de segurança do
+// Firestore (ver firestore.rules) garantem no lado do servidor que cada
+// responsável só lê/escreve as próprias crianças — não é só uma
+// filtragem "de fachada" na tela, é impossível burlar via DevTools.
 @Injectable({ providedIn: 'root' })
 export class CriancaService {
-  // Nada aqui usa "this.storage" ou qualquer service injetado direto no
-  // inicializador do campo — é montado dentro do construtor, onde já está
-  // garantido que os parâmetros injetados existem (ver StorageService
-  // pra mais detalhes sobre por que isso importa).
-  private readonly criancas$$: BehaviorSubject<Crianca[]>;
+  private readonly firestore = inject(Firestore);
+  private readonly authService = inject(AuthService);
+  private readonly registroVacinalService = inject(RegistroVacinalService);
 
-  constructor(
-    private storage: StorageService,
-    private authService: AuthService,
-    private registroVacinalService: RegistroVacinalService
-  ) {
-    const dadosSalvos = this.storage.obter<Crianca[]>(CHAVE_STORAGE);
-    this.criancas$$ = new BehaviorSubject<Crianca[]>(dadosSalvos ?? this.criancasIniciais());
+  private readonly colecaoRef = collection(this.firestore, NOME_COLECAO);
 
-    // Primeira vez que o app abre (nada salvo ainda no storage): já
-    // geramos o calendário de vacinas das crianças de exemplo, pra não
-    // abrir as telas vazias durante a avaliação do desafio.
-    if (!dadosSalvos) {
-      this.criancas$$.value.forEach((crianca) => this.registroVacinalService.gerarCalendarioPara(crianca));
-      this.persistir();
-    }
-  }
-
-  // Duas crianças de exemplo, já ligadas ao responsável demo criado em
-  // ResponsavelService ('resp-1'). Idades bem diferentes ajudam a deixar
-  // visível o Cenário 4 do desafio (família com mais de um filho, cada um
-  // com sua própria situação vacinal) sem precisar cadastrar nada na mão.
-  private criancasIniciais(): Crianca[] {
-    return [
-      { id: 'crianca-1', nome: 'Alice', cpf: '98765432100', dataNascimento: '2025-03-10', responsavelId: 'resp-1', sexo: 'F' },
-      { id: 'crianca-2', nome: 'Theo', cpf: '11122233396', dataNascimento: '2022-11-22', responsavelId: 'resp-1', sexo: 'M' },
-    ];
-  }
-
-  // Lista reativa: além de reagir a mudanças nas próprias crianças, reage
-  // também ao login/logout (combineLatest com o responsável logado). Isso
-  // é o que faz a troca de conta ser "funcional" de verdade — se a pessoa
-  // deslogar e outro responsável logar, a lista atualiza sozinha, sem
-  // precisar recarregar a página. Sem ninguém logado, devolve uma lista
-  // vazia (não é erro, simplesmente não há conta ativa pra mostrar filhos).
+  // Lista reativa: além de reagir a mudanças nas próprias crianças (em
+  // tempo real, via Firestore), reage também ao login/logout (switchMap
+  // no responsável logado). Isso é o que faz a troca de conta ser
+  // "funcional" de verdade — se a pessoa deslogar e outro responsável
+  // logar, a lista atualiza sozinha. Sem ninguém logado, devolve uma
+  // lista vazia (não é erro, simplesmente não há conta ativa pra mostrar
+  // filhos) — e, crucial, SEM tentar consultar o Firestore nesse caso,
+  // porque uma query sem usuário autenticado seria rejeitada pelas regras
+  // de segurança (e cairia como erro, não como lista vazia).
   listar(): Observable<Crianca[]> {
-    return combineLatest([this.criancas$$.asObservable(), this.authService.responsavelLogado()]).pipe(
-      map(([criancas, responsavel]) =>
-        responsavel ? criancas.filter((crianca) => crianca.responsavelId === responsavel.id) : []
-      )
+    return this.authService.responsavelLogado().pipe(
+      switchMap((responsavel) => {
+        if (!responsavel) return of([]);
+        const consulta = query(this.colecaoRef, where('responsavelId', '==', responsavel.id));
+        return collectionData(consulta, { idField: 'id' }) as Observable<Crianca[]>;
+      })
     );
   }
 
-  buscarPorId(id: string): Crianca | undefined {
-    return this.criancas$$.value.find((crianca) => crianca.id === id);
+  buscarPorIdObservable(id: string): Observable<Crianca | undefined> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    return docData(ref, { idField: 'id' }) as Observable<Crianca | undefined>;
   }
 
-  // Versão síncrona, sem filtrar pelo responsável logado — usada na tela
-  // de gerenciamento de usuários (admin), que precisa contar quantas
-  // crianças cada responsável do sistema tem, não só as da própria conta.
-  contarPorResponsavel(responsavelId: string): number {
-    return this.criancas$$.value.filter((crianca) => crianca.responsavelId === responsavelId).length;
+  async buscarPorId(id: string): Promise<Crianca | undefined> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    const snapshot = await getDoc(ref);
+    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Crianca) : undefined;
   }
 
-  buscarPorCpf(cpf: string): Crianca | undefined {
+  // Sem filtrar pelo responsável logado — usada na tela de gerenciamento
+  // de usuários (admin), que precisa contar quantas crianças cada
+  // responsável do sistema tem, não só as da própria conta. Só o admin
+  // consegue de fato rodar essa consulta (regras do Firestore exigem
+  // isAdmin == true pra ler crianças de outro responsavelId).
+  async contarPorResponsavel(responsavelId: string): Promise<number> {
+    const consulta = query(this.colecaoRef, where('responsavelId', '==', responsavelId));
+    const snapshot = await getDocs(consulta);
+    return snapshot.size;
+  }
+
+  // IMPORTANTE (regras de segurança): essa busca só consegue "enxergar"
+  // crianças do responsável logado — as regras do Firestore bloqueiam
+  // ler o documento de uma criança que não é sua (ver firestore.rules,
+  // regra `get` de /criancas), então a checagem de duplicidade abaixo só
+  // vale DENTRO de uma mesma conta. Duas contas diferentes podem
+  // cadastrar uma criança com o mesmo CPF sem o sistema detectar — é uma
+  // escolha consciente: a alternativa exigiria expor dados de crianças
+  // de outras contas pra qualquer pessoa logada (ruim) ou uma Cloud
+  // Function paga só pra essa checagem (fora do escopo agora).
+  async buscarPorCpf(cpf: string): Promise<Crianca | undefined> {
+    const idResponsavelLogado = this.authService.obterIdResponsavelLogado();
+    if (!idResponsavelLogado) return undefined;
+
     const cpfNormalizado = normalizarCpf(cpf);
-    return this.criancas$$.value.find((crianca) => crianca.cpf === cpfNormalizado);
+    const consulta = query(
+      this.colecaoRef,
+      where('responsavelId', '==', idResponsavelLogado),
+      where('cpf', '==', cpfNormalizado)
+    );
+    const snapshot = await getDocs(consulta);
+    if (snapshot.empty) return undefined;
+    const primeiro = snapshot.docs[0];
+    return { id: primeiro.id, ...primeiro.data() } as Crianca;
   }
 
   // Cadastra a criança na conta de quem está logado agora, valida o CPF
@@ -100,7 +127,7 @@ export class CriancaService {
   // mais importante do desafio: o responsável não precisa montar esse
   // calendário manualmente, ele já nasce pronto a partir da data de
   // nascimento informada.
-  cadastrar(dados: DadosCadastroCrianca): Crianca {
+  async cadastrar(dados: DadosCadastroCrianca): Promise<Crianca> {
     const idResponsavelLogado = this.authService.obterIdResponsavelLogado();
     if (!idResponsavelLogado) {
       throw new NaoAutenticadoError();
@@ -112,56 +139,59 @@ export class CriancaService {
       throw new Error('CPF inválido. Informe os 11 dígitos.');
     }
 
-    if (this.buscarPorCpf(cpfNormalizado)) {
-      throw new Error('Já existe uma criança cadastrada com esse CPF.');
+    if (await this.buscarPorCpf(cpfNormalizado)) {
+      throw new Error('Você já tem uma criança cadastrada com esse CPF.');
     }
 
-    const novaCrianca: Crianca = {
+    const novaCriancaSemId: CriancaForm = {
       ...dados,
       cpf: cpfNormalizado,
-      id: crypto.randomUUID(),
       responsavelId: idResponsavelLogado,
     };
 
-    this.criancas$$.next([...this.criancas$$.value, novaCrianca]);
-    this.persistir();
+    const refCriada = await addDoc(this.colecaoRef, novaCriancaSemId);
+    const novaCrianca: Crianca = { id: refCriada.id, ...novaCriancaSemId };
 
-    this.registroVacinalService.gerarCalendarioPara(novaCrianca);
+    await this.registroVacinalService.gerarCalendarioPara(novaCrianca);
 
     return novaCrianca;
   }
 
-  atualizar(id: string, dados: Partial<CriancaForm>): void {
-    const lista = this.criancas$$.value.map((crianca) =>
-      crianca.id === id ? { ...crianca, ...dados, cpf: dados.cpf ? normalizarCpf(dados.cpf) : crianca.cpf } : crianca
-    );
-    this.criancas$$.next(lista);
-    this.persistir();
+  async atualizar(id: string, dados: Partial<CriancaForm>): Promise<void> {
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    await updateDoc(ref, {
+      ...dados,
+      ...(dados.cpf ? { cpf: normalizarCpf(dados.cpf) } : {}),
+    });
   }
 
   // Remove a criança e, junto, todo o histórico vacinal dela — evita ficar
   // registro perdido sem nenhuma criança associada.
-  remover(id: string): void {
-    this.criancas$$.next(this.criancas$$.value.filter((crianca) => crianca.id !== id));
-    this.persistir();
-    this.registroVacinalService.removerPorCrianca(id);
+  //
+  // Recebe responsavelId explicitamente em vez de buscar a criança pra
+  // descobrir de quem ela é — quem chama esse método já sabe (ver
+  // removerPorResponsavel logo abaixo, e EditarUsuarioPage/
+  // GerenciamentoUsuariosPage). Isso também evita uma consulta extra e
+  // dispensa qualquer cuidado especial com ORDEM de remoção: como
+  // RegistroVacinalService.removerPorCrianca não depende mais de
+  // consultar o documento da criança (usa responsavelId desnormalizado
+  // nos próprios registros — ver model RegistroVacinal), criança e
+  // registros podem ser removidos em qualquer ordem.
+  async remover(id: string, responsavelId: string): Promise<void> {
+    await this.registroVacinalService.removerPorCrianca(id, responsavelId);
+    const ref = doc(this.firestore, NOME_COLECAO, id);
+    await deleteDoc(ref);
   }
 
   // Remove TODAS as crianças de um responsável de uma vez (e os
   // respectivos registros vacinais, via remover() de cada uma). Usado
   // quando a própria conta é excluída (EditarUsuarioPage) ou quando o
   // admin remove um usuário pela tela de gerenciamento — centralizado
-  // aqui em vez de cada tela reimplementar esse "filtra e remove uma por
+  // aqui em vez de cada tela reimplementar esse "busca e remove uma por
   // uma", já que as duas situações precisam do mesmo comportamento.
-  removerPorResponsavel(responsavelId: string): void {
-    const idsParaRemover = this.criancas$$.value
-      .filter((crianca) => crianca.responsavelId === responsavelId)
-      .map((crianca) => crianca.id);
-
-    idsParaRemover.forEach((id) => this.remover(id));
-  }
-
-  private persistir(): void {
-    this.storage.salvar(CHAVE_STORAGE, this.criancas$$.value);
+  async removerPorResponsavel(responsavelId: string): Promise<void> {
+    const consulta = query(this.colecaoRef, where('responsavelId', '==', responsavelId));
+    const snapshot = await getDocs(consulta);
+    await Promise.all(snapshot.docs.map((documento) => this.remover(documento.id, responsavelId)));
   }
 }

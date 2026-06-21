@@ -13,7 +13,7 @@ import {
 import { addIcons } from 'ionicons';
 import { medkitOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons';
 
-import ResponsavelService from '../../core/service/responsavel.service';
+import { ResponsavelService } from '../../core/service/responsavel.service';
 import { normalizarCpf, formatarCpf } from '../../core/util/cpf.util';
 
 @Component({
@@ -56,7 +56,7 @@ export class CadastroPage {
     return confirmarSenha.length > 0 && senha !== confirmarSenha;
   }
 
-  protected cadastrar(): void {
+  protected async cadastrar(): Promise<void> {
     this.erroCadastro = null;
 
     if (this.form.invalid) {
@@ -80,7 +80,7 @@ export class CadastroPage {
     this.enviando = true;
 
     try {
-      this.responsavelService.cadastrar({
+      await this.responsavelService.cadastrar({
         nome,
         cpf,
         email: email || undefined,

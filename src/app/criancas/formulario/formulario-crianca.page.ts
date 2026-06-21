@@ -101,7 +101,7 @@ export class FormularioCriancaPage {
     return `${dia}/${mes}/${ano}`;
   }
 
-  protected salvar(): void {
+  protected async salvar(): Promise<void> {
     this.erroEnvio = null;
 
     if (this.form.invalid || this.cpfInvalido) {
@@ -116,7 +116,7 @@ export class FormularioCriancaPage {
     const { nome, cpf, dataNascimento, sexo } = this.form.getRawValue();
 
     try {
-      const crianca = this.criancaService.cadastrar({ nome, cpf, dataNascimento, sexo });
+      const crianca = await this.criancaService.cadastrar({ nome, cpf, dataNascimento, sexo });
       this.router.navigate(['/criancas', crianca.id], { replaceUrl: true });
     } catch (erro) {
       // CriancaService já lança mensagens prontas pra exibir (CPF

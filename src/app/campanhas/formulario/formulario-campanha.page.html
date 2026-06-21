@@ -9,11 +9,15 @@
 
 <ion-content class="formulario-content">
   <div class="pagina">
-    <p class="introducao">
+    @if (carregando) {
+      <p class="introducao">Carregando dados da campanha...</p>
+    }
+
+    <p class="introducao" [class.ion-hide]="carregando">
       Essas informações aparecem pra todos os responsáveis na tela de campanhas de vacinação.
     </p>
 
-    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate [class.ion-hide]="carregando">
       <ion-item lines="full" class="campo">
         <ion-input
           label="Título da campanha"

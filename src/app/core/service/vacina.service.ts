@@ -7,6 +7,14 @@ import { Vacina } from '../model/vacina.model';
 // simplificado pro escopo do desafio. É a mesma lista pra todas as crianças
 // (igual já está explicado no model Vacina.ts), por isso esse service só
 // tem leitura — não existe "cadastrar vacina nova" aqui.
+//
+// MIGRAÇÃO PRA FIREBASE: de propósito esse catálogo NÃO foi movido pro
+// Firestore. É dado estático, igual pra every criança, que não muda em
+// runtime nem depende de quem está logado — não tem ganho nenhum em
+// pagar uma consulta de rede pra isso toda vez que o app abre. Os outros
+// services (responsaveis, criancas, registrosVacinais, campanhas) viraram
+// coleções porque são dados que mudam e pertencem a alguém; este aqui
+// continua sendo só uma constante do código.
 @Injectable({ providedIn: 'root' })
 export class VacinaService {
   private readonly vacinas$$ = new BehaviorSubject<Vacina[]>([

@@ -69,7 +69,7 @@ export class LoginPage {
     this.senhaVisivel = !this.senhaVisivel;
   }
 
-  protected entrar(): void {
+  protected async entrar(): Promise<void> {
     this.erroLogin = null;
 
     if (this.form.invalid) {
@@ -80,22 +80,17 @@ export class LoginPage {
     this.enviando = true;
     const { cpf, senha } = this.form.getRawValue();
 
-    // O AuthService já faz a comparação e devolve null em caso de falha
-    // (CPF não encontrado OU senha errada) — de propósito não dizemos
-    // qual dos dois foi, pra não dar pista de quais CPFs já têm conta.
-    const responsavel = this.authService.login(cpf, senha);
-    this.enviando = false;
-
-    if (!responsavel) {
-      this.erroLogin = 'CPF ou senha inválidos.';
-      return;
+    // O AuthService já faz a comparação contra o Firebase Auth e lança
+    // erro com mensagem amigável em caso de falha (CPF não encontrado OU
+    // senha errada) — de propósito não dizemos qual dos dois foi, pra não
+    // dar pista de quais CPFs já têm conta.
+    try {
+      await this.authService.login(cpf, senha);
+      this.router.navigateByUrl('/criancas', { replaceUrl: true });
+    } catch (erro) {
+      this.erroLogin = erro instanceof Error ? erro.message : 'CPF ou senha inválidos.';
+    } finally {
+      this.enviando = false;
     }
-
-    this.router.navigateByUrl('/criancas', { replaceUrl: true });
-  }
-
-  protected preencherDemo(): void {
-    this.form.setValue({ cpf: formatarCpf('12345678909'), senha: '123456' });
-    this.erroLogin = null;
   }
 }

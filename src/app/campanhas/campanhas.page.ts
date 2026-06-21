@@ -67,15 +67,22 @@ export class CampanhasPage {
     )
   );
 
-  // Calculado uma vez (não como observable) porque a sessão não muda
-  // dentro dessa tela — se a pessoa deslogar, o authGuard já tira ela
-  // daqui antes de qualquer re-render importar.
-  protected readonly ehAdmin = this.authService.ehAdmin();
+  // MIGRAÇÃO PRA FIREBASE: propriedade síncrona simples (pro template não
+  // precisar de `| async` espalhado em vários lugares — class bindings,
+  // atributos, clique), mas mantida sincronizada via subscribe ao
+  // Observable de sessão. O authGuard já espera a sessão resolver antes
+  // de liberar essa rota, então no momento em que o componente é criado
+  // o valor inicial já reflete a sessão real — e continua acompanhando se
+  // ela mudar enquanto a pessoa está na tela (ex.: logout em outra aba).
+  protected ehAdmin = this.authService.ehAdmin();
 
   protected campanhaParaRemover: Campanha | null = null;
 
   constructor() {
     addIcons({ megaphoneOutline, calendarClearOutline, addOutline, closeOutline });
+    this.authService.responsavelLogado().subscribe((responsavel) => {
+      this.ehAdmin = responsavel?.isAdmin === true;
+    });
   }
 
   protected estaAtiva(campanha: { dataInicio: string; dataFim: string }): boolean {
@@ -102,14 +109,14 @@ export class CampanhasPage {
     this.campanhaParaRemover = campanha;
   }
 
-  protected aoFecharConfirmacaoRemover(evento: CustomEvent): void {
+  protected async aoFecharConfirmacaoRemover(evento: CustomEvent): Promise<void> {
     const role = evento.detail?.role;
     const campanha = this.campanhaParaRemover;
 
     this.campanhaParaRemover = null;
 
     if (role === 'confirm' && campanha) {
-      this.campanhaService.remover(campanha.id);
+      await this.campanhaService.remover(campanha.id);
     }
   }
 }

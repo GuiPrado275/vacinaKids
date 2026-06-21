@@ -12,6 +12,18 @@ export interface RegistroVacinal {
   dataPrevista: string; // Calculada a partir de Crianca.dataNascimento + Vacina.idadeRecomendadaMeses
   dataAplicacao: string | null;
   localAplicacao?: string;
+  // Cópia (desnormalizada) do responsavelId da criança dona desse
+  // registro. Em bancos relacionais isso seria redundante (já dá pra
+  // fazer JOIN), mas no Firestore as regras de segurança não conseguem
+  // checar "o dono da criança associada" pra cada documento de uma QUERY
+  // sem custo proibitivo (cada `get()` extra conta pro limite de acessos
+  // a documento, multiplicado por documento listado — ver
+  // firestore.rules). Copiar o dono direto pro registro permite que a
+  // regra de `list` funcione exatamente igual à de /criancas: barata e
+  // sem get() extra. Tradeoff aceito: se uma criança um dia trocasse de
+  // responsável (não acontece hoje no app), esse campo precisaria ser
+  // atualizado junto — não é uma operação que a UI expõe.
+  responsavelId: string;
 }
 
 export type RegistroVacinalForm = Omit<RegistroVacinal, 'id'>;

@@ -3,7 +3,7 @@
 }
 
 .pagina {
-  padding: 1rem 1.25rem 3rem;
+  padding: 1.25rem 1.25rem 3rem;
   max-width: 32rem;
   margin: 0 auto;
 }
@@ -11,8 +11,12 @@
 .introducao {
   font-size: 0.88rem;
   color: var(--ion-color-medium-shade);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--ion-color-secondary) 12%, white);
+  border-radius: 0.65rem;
+  border-left: 3px solid var(--ion-color-secondary-shade);
 }
 
 .campo {
@@ -22,6 +26,7 @@
   border-radius: 0.75rem;
   margin-bottom: 1rem;
   --padding-start: 0.9rem;
+  box-shadow: 0 1px 3px rgba(71, 60, 51, 0.05);
 }
 
 .mensagem-erro {
@@ -35,10 +40,12 @@
 }
 
 .botao-salvar {
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  --background-activated: var(--ion-color-primary-shade);
+  --background: var(--ion-color-dark);
+  --color: #ffffff;
+  --background-activated: var(--ion-color-dark-shade);
   font-family: var(--app-font-heading);
-  font-weight: 600;
-  margin-top: 1.25rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+  height: 3rem;
 }

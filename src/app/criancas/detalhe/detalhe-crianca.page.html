@@ -12,58 +12,108 @@
     @if (detalhe) {
       <div class="pagina">
 
-        <!-- Cabeçalho: identidade da criança bem clara, pra nunca dar
-             margem a confundir com outro filho (Cenário 4) -->
-        <section class="cabecalho-crianca">
+        <!-- Hero da criança: identidade clara para nunca confundir irmãos (Cenário 4) -->
+        <section class="hero-crianca">
           <div class="avatar-grande" [attr.data-sexo]="detalhe.crianca.sexo">
             {{ detalhe.crianca.nome.charAt(0) }}
           </div>
-          <div class="cabecalho-info">
+          <div class="hero-info">
             <h1 class="app-heading">{{ detalhe.crianca.nome }}</h1>
-            <span class="cabecalho-idade">
-              <ion-icon name="cake-outline" aria-hidden="true"></ion-icon>
+            <span class="hero-idade">
+              <ion-icon name="gift-outline" aria-hidden="true"></ion-icon>
               {{ detalhe.idadeEmMeses }} {{ detalhe.idadeEmMeses === 1 ? 'mês' : 'meses' }} de vida
             </span>
           </div>
         </section>
 
-        <!-- Resumo numérico (Cenário 1) -->
+        <!-- Alerta de pendência em destaque (Cenário 2) -->
+        @if (detalhe.resumo.atrasadas > 0) {
+          <div class="alerta-atraso" role="alert">
+            <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
+            <div>
+              <strong>
+                {{ detalhe.resumo.atrasadas }}
+                {{ detalhe.resumo.atrasadas === 1 ? 'vacina atrasada' : 'vacinas atrasadas' }}
+              </strong>
+              <span>Consulte um profissional de saúde para atualizar o calendário.</span>
+            </div>
+          </div>
+        }
+
+        <!-- Resumo numérico — Cenário 1 -->
         <section class="resumo-cards">
           <div class="resumo-card resumo-card--total">
             <strong>{{ detalhe.resumo.total }}</strong>
-            <span>Vacinas previstas</span>
+            <span>Previstas</span>
           </div>
           <div class="resumo-card resumo-card--ok">
+            <span class="resumo-icone">✓</span>
             <strong>{{ detalhe.resumo.aplicadas }}</strong>
             <span>Aplicadas</span>
           </div>
           @if (detalhe.resumo.atrasadas > 0) {
             <div class="resumo-card resumo-card--alerta">
+              <span class="resumo-icone">!</span>
               <strong>{{ detalhe.resumo.atrasadas }}</strong>
               <span>Atrasadas</span>
             </div>
           }
+          @if ((detalhe.resumo.total - detalhe.resumo.aplicadas - detalhe.resumo.atrasadas) > 0) {
+            <div class="resumo-card resumo-card--futuro">
+              <span class="resumo-icone">→</span>
+              <strong>{{ detalhe.resumo.total - detalhe.resumo.aplicadas - detalhe.resumo.atrasadas }}</strong>
+              <span>Futuras</span>
+            </div>
+          }
         </section>
 
-        <!-- Timeline agrupada por idade, igual à carteirinha física -->
+        <!-- Barra de progresso geral -->
+        <div class="progresso-geral">
+          <div class="progresso-barra">
+            <div
+              class="progresso-fill"
+              [style.width.%]="detalhe.resumo.total ? (detalhe.resumo.aplicadas / detalhe.resumo.total) * 100 : 0"
+            ></div>
+          </div>
+          <span class="progresso-label">
+            {{ detalhe.resumo.total ? ((detalhe.resumo.aplicadas / detalhe.resumo.total) * 100 | number:'1.0-0') : 0 }}% do calendário completo
+          </span>
+        </div>
+
+        <!-- Timeline agrupada por idade — igual à carteirinha física -->
         <section class="timeline">
           @for (grupo of detalhe.grupos; track grupo.idadeRecomendadaMeses) {
             <div class="grupo-idade">
               <div class="grupo-marcador">
-                <span class="grupo-ponto"></span>
+                <span class="grupo-ponto" [class.grupo-ponto--concluido]="grupoConcluido(grupo)"></span>
                 <span class="grupo-linha"></span>
               </div>
               <div class="grupo-conteudo">
                 <h3 class="grupo-rotulo">{{ grupo.rotulo }}</h3>
 
                 @for (registro of grupo.registros; track registro.id) {
-                  <div class="item-vacina" [class.item-vacina--aplicada]="registro.status === StatusVacina.APLICADA">
-                    <div class="item-vacina-texto">
-                      <strong>{{ registro.vacina.nome }}</strong>
-                      <span class="item-vacina-dose">{{ registro.vacina.doseNumero }}ª dose · {{ registro.vacina.protegeContra }}</span>
-                      @if (registro.status === StatusVacina.APLICADA && registro.dataAplicacao) {
-                        <span class="item-vacina-data">Aplicada em {{ formatarData(registro.dataAplicacao) }}</span>
-                      }
+                  <div class="item-vacina"
+                       [class.item-vacina--aplicada]="registro.status === StatusVacina.APLICADA"
+                       [class.item-vacina--atrasada]="registro.status === StatusVacina.ATRASADA">
+
+                    <div class="item-vacina-esquerda">
+                      <div class="item-status-dot" [attr.data-status]="registro.status"></div>
+                      <div class="item-vacina-texto">
+                        <strong>{{ registro.vacina.nome }}</strong>
+                        <span class="item-vacina-dose">{{ registro.vacina.doseNumero }}ª dose · {{ registro.vacina.protegeContra }}</span>
+                        @if (registro.status === StatusVacina.APLICADA && registro.dataAplicacao) {
+                          <span class="item-vacina-data">
+                            <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+                            Aplicada em {{ formatarData(registro.dataAplicacao) }}
+                          </span>
+                        }
+                        @if (registro.status === StatusVacina.ATRASADA) {
+                          <span class="item-vacina-atraso">
+                            <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
+                            Pendente — verificar com médico
+                          </span>
+                        }
+                      </div>
                     </div>
 
                     <div class="item-vacina-acao">
@@ -80,9 +130,6 @@
                           <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
                         </ion-button>
                       } @else if (registro.status === StatusVacina.FUTURA) {
-                        <!-- Vacina futura (mais de um mês até a data prevista) não
-                             pode ser marcada como aplicada fora de hora — só
-                             quando estiver em dia (perto do prazo) ou atrasada. -->
                         <ion-button
                           fill="outline"
                           size="small"
@@ -114,8 +161,9 @@
       </div>
     } @else {
       <div class="nao-encontrada">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         <p>Não encontramos essa criança.</p>
-        <ion-button routerLink="/criancas">Voltar para minhas crianças</ion-button>
+        <ion-button routerLink="/criancas" shape="round">Voltar para minhas crianças</ion-button>
       </div>
     }
   }

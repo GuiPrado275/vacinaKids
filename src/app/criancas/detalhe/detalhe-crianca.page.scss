@@ -3,34 +3,38 @@
 }
 
 .pagina {
-  padding: 0.5rem 1rem 3rem;
+  padding: 0 0 3rem;
   max-width: 42rem;
   margin: 0 auto;
 }
 
 // ---------------------------------------------------------------------------
-// Cabeçalho da criança
+// Hero da criança — identidade bem clara (Cenário 4)
 // ---------------------------------------------------------------------------
-.cabecalho-crianca {
+.hero-crianca {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.5rem 0 1.25rem;
+  padding: 1.25rem 1rem 1.25rem;
+  background: #473C33;
+  margin-bottom: 0;
 }
 
 .avatar-grande {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.75rem;
+  height: 3.75rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--app-font-heading);
   font-weight: 700;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   color: var(--ion-color-primary-contrast);
   background: var(--ion-color-primary);
   flex-shrink: 0;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
 
   &[data-sexo='F'] {
     background: var(--ion-color-tertiary);
@@ -38,24 +42,24 @@
   }
 }
 
-.cabecalho-info {
+.hero-info {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 
   h1 {
     font-size: 1.4rem;
     margin: 0;
-    color: var(--ion-color-dark);
+    color: #ffffff;
   }
 }
 
-.cabecalho-idade {
+.hero-idade {
   display: flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.85rem;
-  color: var(--ion-color-medium-shade);
+  color: rgba(255, 255, 255, 0.7);
 
   ion-icon {
     font-size: 1rem;
@@ -63,52 +67,154 @@
 }
 
 // ---------------------------------------------------------------------------
-// Cards de resumo (Cenário 1)
+// Alerta de atraso — Cenário 2
+// ---------------------------------------------------------------------------
+.alerta-atraso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: color-mix(in srgb, var(--ion-color-tertiary) 16%, white);
+  border-left: 4px solid var(--ion-color-tertiary);
+  padding: 0.85rem 1rem;
+  margin: 0.75rem 1rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+
+  ion-icon {
+    font-size: 1.3rem;
+    color: var(--ion-color-tertiary-shade);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--ion-color-tertiary-shade);
+    font-family: var(--app-font-heading);
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium-shade);
+    line-height: 1.4;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cards de resumo — Cenário 1
 // ---------------------------------------------------------------------------
 .resumo-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: 0.6rem;
-  margin-bottom: 1.75rem;
+  margin: 0.75rem 1rem 0.85rem;
 }
 
 .resumo-card {
-  background: #ffffff;
+  background: var(--app-card-bg);
   border-radius: 0.85rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid #efeae0;
+  padding: 0.85rem;
+  border: 1.5px solid var(--app-card-border);
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.1rem;
+  align-items: center;
+  text-align: center;
+
+  .resumo-icone {
+    font-size: 0.9rem;
+    font-weight: 700;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.15rem;
+  }
 
   strong {
     font-family: var(--app-font-heading);
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    line-height: 1;
     color: var(--ion-color-dark);
   }
 
   span {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     color: var(--ion-color-medium-shade);
   }
 
-  &--ok strong {
-    color: var(--ion-color-primary-shade);
+  &--ok {
+    .resumo-icone {
+      background: color-mix(in srgb, var(--ion-color-primary) 20%, white);
+      color: var(--ion-color-primary-shade);
+    }
+    strong { color: var(--ion-color-primary-shade); }
   }
 
   &--alerta {
-    background: color-mix(in srgb, var(--ion-color-tertiary) 14%, white);
+    background: color-mix(in srgb, var(--ion-color-tertiary) 10%, white);
     border-color: color-mix(in srgb, var(--ion-color-tertiary) 40%, white);
 
-    strong {
-      color: color-mix(in srgb, var(--ion-color-tertiary-contrast) 80%, var(--ion-color-tertiary));
+    .resumo-icone {
+      background: color-mix(in srgb, var(--ion-color-tertiary) 25%, white);
+      color: var(--ion-color-tertiary-shade);
     }
+    strong { color: var(--ion-color-tertiary-shade); }
+  }
+
+  &--futuro {
+    .resumo-icone {
+      background: color-mix(in srgb, var(--ion-color-dark) 10%, white);
+      color: var(--ion-color-dark);
+    }
+    strong { color: var(--ion-color-dark); }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Timeline agrupada por idade — eco visual da carteirinha física
+// Barra de progresso geral
 // ---------------------------------------------------------------------------
+.progresso-geral {
+  margin: 0 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.progresso-barra {
+  height: 0.5rem;
+  background: #efeae0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ion-color-primary-shade), var(--ion-color-primary));
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progresso-label {
+  font-size: 0.76rem;
+  color: var(--ion-color-medium-shade);
+  text-align: right;
+}
+
+// ---------------------------------------------------------------------------
+// Timeline — eco visual da carteirinha física
+// ---------------------------------------------------------------------------
+.timeline {
+  padding: 0 1rem;
+}
+
 .grupo-idade {
   display: flex;
   gap: 0.85rem;
@@ -123,12 +229,19 @@
 }
 
 .grupo-ponto {
-  width: 0.65rem;
-  height: 0.65rem;
+  width: 0.7rem;
+  height: 0.7rem;
   border-radius: 50%;
-  background: var(--ion-color-primary);
+  background: #e7e2d8;
+  border: 2px solid #ddd5c5;
   margin-top: 0.45rem;
   flex-shrink: 0;
+  transition: background 0.2s;
+
+  &--concluido {
+    background: var(--ion-color-primary);
+    border-color: var(--ion-color-primary-shade);
+  }
 }
 
 .grupo-linha {
@@ -149,26 +262,58 @@
 }
 
 .grupo-rotulo {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--ion-color-dark);
-  margin: 0 0 0.6rem;
-  font-weight: 600;
+  margin: 0 0 0.65rem;
+  font-weight: 700;
+  font-family: var(--app-font-heading);
 }
 
+// Item de vacina na timeline
 .item-vacina {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  background: #ffffff;
-  border: 1px solid #efeae0;
+  background: var(--app-card-bg);
+  border: 1.5px solid var(--app-card-border);
   border-radius: 0.75rem;
   padding: 0.75rem 0.9rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.55rem;
+  transition: border-color 0.15s;
 
   &--aplicada {
-    background: color-mix(in srgb, var(--ion-color-primary) 8%, white);
+    background: color-mix(in srgb, var(--ion-color-primary) 7%, white);
+    border-color: color-mix(in srgb, var(--ion-color-primary) 30%, white);
   }
+
+  &--atrasada {
+    background: color-mix(in srgb, var(--ion-color-tertiary) 7%, white);
+    border-color: color-mix(in srgb, var(--ion-color-tertiary) 35%, white);
+  }
+}
+
+.item-vacina-esquerda {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  flex: 1;
+  min-width: 0;
+}
+
+// Ponto de status na linha do item
+.item-status-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  background: #ddd5c5;
+
+  &[data-status='APLICADA'] { background: var(--ion-color-primary); }
+  &[data-status='EM_DIA'] { background: var(--ion-color-secondary-shade); }
+  &[data-status='ATRASADA'] { background: var(--ion-color-tertiary); }
+  &[data-status='FUTURA'] { background: #ddd5c5; }
 }
 
 .item-vacina-texto {
@@ -178,15 +323,41 @@
   min-width: 0;
 
   strong {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     color: var(--ion-color-dark);
+    font-family: var(--app-font-heading);
   }
 }
 
-.item-vacina-dose,
-.item-vacina-data {
-  font-size: 0.76rem;
+.item-vacina-dose {
+  font-size: 0.75rem;
   color: var(--ion-color-medium-shade);
+}
+
+.item-vacina-data {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  color: var(--ion-color-primary-shade);
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
+.item-vacina-atraso {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  color: var(--ion-color-tertiary-shade);
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
 }
 
 .item-vacina-acao {
@@ -207,6 +378,11 @@
   padding: 4rem 1.5rem;
   text-align: center;
   color: var(--ion-color-medium-shade);
+
+  ion-icon {
+    font-size: 3rem;
+    opacity: 0.4;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -214,7 +390,22 @@
 // ---------------------------------------------------------------------------
 @media (min-width: 768px) {
   .pagina {
-    padding-top: 1rem;
+    padding-bottom: 4rem;
+  }
+
+  .hero-crianca {
+    padding: 1.5rem 1.5rem;
+  }
+
+  .resumo-cards,
+  .alerta-atraso,
+  .progresso-geral {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+  }
+
+  .timeline {
+    padding: 0 1.5rem;
   }
 
   .item-vacina {

@@ -63,13 +63,7 @@
   --ion-color-warning-shade: #dfb05b;
   --ion-color-warning-tint: #fecd77;
 
-  /** danger — existe pra qualquer ion-* que use color="danger" por padrão
-      (ex.: ion-alert de confirmação de exclusão), mas a UI de status da
-      vacina (Aplicada/Em dia/Atrasada/Futura) NÃO deve usar danger/warning/
-      success do Ionic. Ela usa STATUS_VACINA_CONFIG diretamente (ver
-      core/model/enum/status-vacina.enum.ts), que já é a fonte única da
-      verdade pra cor de cada status — evita ter a mesma informação
-      (qual cor representa "atrasada") decidida em dois lugares diferentes. **/
+  /** danger **/
   --ion-color-danger: #FDA769;
   --ion-color-danger-rgb: 253, 167, 105;
   --ion-color-danger-contrast: #45230a;
@@ -77,8 +71,7 @@
   --ion-color-danger-shade: #de925c;
   --ion-color-danger-tint: #fdaf78;
 
-  /** dark — marrom da marca, usado em textos de maior ênfase, headers
-      escuros e como cor "dark" customizada disponível como ion-color="dark" **/
+  /** dark — marrom da marca **/
   --ion-color-dark: #473C33;
   --ion-color-dark-rgb: 71, 60, 51;
   --ion-color-dark-contrast: #ffffff;
@@ -86,7 +79,7 @@
   --ion-color-dark-shade: #3e342c;
   --ion-color-dark-tint: #594f47;
 
-  /** medium — tom neutro derivado do marrom da marca (não um cinza genérico) **/
+  /** medium — tom neutro derivado do marrom da marca **/
   --ion-color-medium: #8a7d70;
   --ion-color-medium-rgb: 138, 125, 112;
   --ion-color-medium-contrast: #ffffff;
@@ -94,8 +87,7 @@
   --ion-color-medium-shade: #796e62;
   --ion-color-medium-tint: #968a7e;
 
-  /** light — fundo quase-branco com leve calor, combina com o marrom da
-      marca melhor que um branco/cinza puro de SaaS genérico **/
+  /** light — fundo quase-branco com leve calor **/
   --ion-color-light: #FBF9F4;
   --ion-color-light-rgb: 251, 249, 244;
   --ion-color-light-contrast: #473C33;
@@ -109,6 +101,13 @@
   --ion-text-color: #473C33;
   --ion-text-color-rgb: 71, 60, 51;
 
-  --ion-toolbar-background: #FBF9F4;
+  --ion-toolbar-background: #473C33;
+  --ion-toolbar-color: #ffffff;
   --ion-item-background: #ffffff;
+
+  /** Tokens adicionais de UX **/
+  --app-card-border: #efeae0;
+  --app-card-bg: #ffffff;
+  --app-card-shadow: 0 1px 3px rgba(71, 60, 51, 0.08), 0 1px 2px rgba(71, 60, 51, 0.04);
+  --app-card-shadow-hover: 0 6px 20px rgba(71, 60, 51, 0.12), 0 2px 6px rgba(71, 60, 51, 0.06);
 }

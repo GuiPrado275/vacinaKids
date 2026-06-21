@@ -20,8 +20,7 @@
 <ion-content class="lista-content">
   <div class="pagina">
 
-    <!-- Item 5: visível só pro admin, logo no topo da tela inicial — é o
-         ponto de entrada pra gerenciar (ver/excluir) os usuários do app. -->
+    <!-- Admin: gerenciamento de usuários -->
     @if (ehAdmin) {
       <a class="card-admin" routerLink="/admin/usuarios">
         <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
@@ -33,37 +32,55 @@
       </a>
     }
 
-    <!-- Cenário 3: campanhas ativas, em destaque no topo -->
+    <!-- Cenário 3: campanhas ativas em destaque no topo -->
     @if ((campanhasAtivas$ | async); as campanhas) {
       @if (campanhas.length > 0) {
         <section class="bloco-campanhas">
+          <div class="bloco-campanhas-header">
+            <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+            <span>Campanhas ativas</span>
+          </div>
           @for (campanha of campanhas; track campanha.id) {
             <a class="card-campanha" routerLink="/campanhas">
-              <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
               <div class="card-campanha-texto">
                 <strong>{{ campanha.titulo }}</strong>
                 <span>{{ campanha.publicoAlvo }}</span>
               </div>
-              <ion-icon name="chevron-forward-outline" class="seta" aria-hidden="true"></ion-icon>
+              <div class="card-campanha-badge">
+                <span class="badge-ativa">Ativa agora</span>
+                <ion-icon name="chevron-forward-outline" class="seta" aria-hidden="true"></ion-icon>
+              </div>
             </a>
           }
         </section>
       }
     }
 
-    <h2 class="app-heading titulo-secao">Minhas crianças</h2>
+    <div class="secao-header">
+      <h2 class="app-heading titulo-secao">Minhas crianças</h2>
+    </div>
 
     @if ((criancas$ | async); as criancas) {
       @if (criancas.length === 0) {
+        <!-- Estado vazio com visual amigável -->
         <div class="estado-vazio">
-          <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-          <p>Você ainda não cadastrou nenhuma criança.</p>
-          <ion-button routerLink="/criancas/nova" shape="round">Cadastrar criança</ion-button>
+          <div class="estado-vazio-ilustracao" aria-hidden="true">
+            <div class="ilustracao-circulo"></div>
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <h3 class="app-heading">Nenhuma criança cadastrada</h3>
+          <p>Cadastre a primeira criança para gerar o calendário de vacinas automaticamente.</p>
+          <ion-button routerLink="/criancas/nova" shape="round" class="botao-cadastrar-vazio">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Cadastrar criança
+          </ion-button>
         </div>
       } @else {
         <div class="grid-criancas">
           @for (item of criancas; track item.crianca.id) {
-            <a class="card-crianca" [routerLink]="['/criancas', item.crianca.id]">
+            <a class="card-crianca" [routerLink]="['/criancas', item.crianca.id]"
+               [class.card-crianca--pendencia]="item.temPendencia">
+
               <div class="card-crianca-topo">
                 <div class="avatar" [attr.data-sexo]="item.crianca.sexo">
                   {{ item.crianca.nome.charAt(0) }}
@@ -72,13 +89,15 @@
                   <strong>{{ item.crianca.nome }}</strong>
                   <span>{{ formatarIdade(item.idadeEmMeses) }}</span>
                 </div>
-                <ion-icon name="chevron-forward-outline" class="seta" aria-hidden="true"></ion-icon>
+                <!-- Cenário 2: badge de pendência bem visível -->
+                @if (item.temPendencia) {
+                  <div class="alerta-pendencia" aria-label="Possui vacinas atrasadas">
+                    <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
+                  </div>
+                }
               </div>
 
-              @if (item.temPendencia) {
-                <app-status-badge [status]="StatusVacina.ATRASADA" class="badge-pendencia" />
-              }
-
+              <!-- Barra de progresso vacinal -->
               <div class="progresso">
                 <div class="progresso-barra">
                   <div
@@ -86,10 +105,20 @@
                     [style.width.%]="item.resumo.total ? (item.resumo.aplicadas / item.resumo.total) * 100 : 0"
                   ></div>
                 </div>
-                <span class="progresso-texto">
-                  {{ item.resumo.aplicadas }} de {{ item.resumo.total }} vacinas aplicadas
-                </span>
+                <div class="progresso-rodape">
+                  <span class="progresso-texto">
+                    {{ item.resumo.aplicadas }}/{{ item.resumo.total }} vacinas
+                  </span>
+                  @if (item.temPendencia) {
+                    <span class="progresso-alerta">
+                      {{ item.resumo.atrasadas }} atrasada{{ item.resumo.atrasadas !== 1 ? 's' : '' }}
+                    </span>
+                  } @else {
+                    <span class="progresso-ok">Em dia ✓</span>
+                  }
+                </div>
               </div>
+
             </a>
           }
         </div>

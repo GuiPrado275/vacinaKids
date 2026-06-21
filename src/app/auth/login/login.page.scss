@@ -10,7 +10,7 @@
 }
 
 // ---------------------------------------------------------------------------
-// Lado de apresentação (visível só em telas largas — ver media query no fim)
+// Lado de apresentação (visível só em telas largas)
 // ---------------------------------------------------------------------------
 .login-apresentacao {
   display: none;
@@ -19,18 +19,19 @@
 .marca {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-bottom: 2.5rem;
 
   ion-icon {
-    font-size: 1.75rem;
+    font-size: 2rem;
     color: var(--ion-color-primary-shade);
   }
 
   span {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--ion-color-dark);
+    font-family: var(--app-font-heading);
   }
 }
 
@@ -49,7 +50,7 @@
   margin: 0 0 2.5rem;
 }
 
-// Tiras coloridas com as 4 cores obrigatórias — o "índice de carteirinha"
+// Tiras coloridas — as 4 cores obrigatórias como assinatura visual
 .tiras-cor {
   display: flex;
   gap: 0.5rem;
@@ -57,7 +58,7 @@
 
   .tira {
     flex: 1;
-    height: 0.5rem;
+    height: 0.6rem;
     border-radius: 999px;
   }
 
@@ -74,7 +75,7 @@
   width: 100%;
   max-width: 26rem;
   margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+  padding: 2.25rem 1.5rem 3rem;
   box-sizing: border-box;
 }
 
@@ -82,30 +83,32 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
 
   ion-icon {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     color: var(--ion-color-primary-shade);
   }
 
   span {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--ion-color-dark);
+    font-family: var(--app-font-heading);
   }
 }
 
 .cartao-titulo {
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   color: var(--ion-color-dark);
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.3rem;
 }
 
 .cartao-subtitulo {
   font-size: 0.9rem;
   color: var(--ion-color-medium-shade);
   margin: 0 0 1.75rem;
+  line-height: 1.4;
 }
 
 .campo {
@@ -115,6 +118,7 @@
   border-radius: 0.75rem;
   margin-bottom: 1rem;
   --padding-start: 0.9rem;
+  box-shadow: 0 1px 3px rgba(71, 60, 51, 0.06);
 }
 
 .icone-olho {
@@ -139,6 +143,7 @@
   background: color-mix(in srgb, var(--ion-color-primary) 16%, white);
   border-radius: 0.65rem;
   padding: 0.65rem 0.85rem;
+  border-left: 3px solid var(--ion-color-primary);
 
   p {
     margin: 0;
@@ -149,23 +154,32 @@
 }
 
 .botao-entrar {
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  --background-activated: var(--ion-color-primary-shade);
+  --background: var(--ion-color-dark);
+  --color: #ffffff;
+  --background-activated: var(--ion-color-dark-shade);
+  --background-hover: var(--ion-color-dark-tint);
   font-family: var(--app-font-heading);
-  font-weight: 600;
-  margin-top: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 0.75rem;
+  height: 3rem;
 }
 
-.botao-demo {
-  --color: var(--ion-color-dark-tint);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+.link-cadastro {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--ion-color-medium);
+
+  a {
+    color: var(--ion-color-primary-shade);
+    font-weight: 700;
+    text-decoration: none;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Responsividade — desktop/tablet ganham o painel de apresentação ao lado;
-// mobile mantém só o cartão, ocupando a tela inteira (foco total no form).
+// Desktop/tablet: painel de apresentação ao lado
 // ---------------------------------------------------------------------------
 @media (min-width: 768px) {
   .login-layout {
@@ -180,6 +194,7 @@
     flex: 1.1;
     padding: 3rem 3rem 3rem 4rem;
     background: linear-gradient(160deg, #f3efe2 0%, var(--ion-color-light) 60%);
+    border-right: 1px solid #e7e2d8;
   }
 
   .login-cartao {
@@ -203,18 +218,5 @@
 
   .apresentacao-titulo {
     font-size: 2.75rem;
-  }
-}
-
-.link-cadastro {
-  text-align: center;
-  margin-top: 12px;
-  font-size: 0.875rem;
-  color: var(--ion-color-medium);
-
-  a {
-    color: var(--ion-color-primary);
-    font-weight: 600;
-    text-decoration: none;
   }
 }

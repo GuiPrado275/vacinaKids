@@ -14,7 +14,7 @@ import {
   IonFabButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline } from 'ionicons/icons';
+import { logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline, alertCircle } from 'ionicons/icons';
 
 import { AuthService } from '../../core/service/auth.service';
 import { CriancaService } from '../../core/service/crianca.service';
@@ -22,7 +22,6 @@ import { CampanhaService } from '../../core/service/campanha.service';
 import { RegistroVacinalService, ResumoVacinal } from '../../core/service/registro-vacinal.service';
 import { Crianca } from '../../core/model/crianca.model';
 import { calcularIdadeEmMeses } from '../../core/model/crianca.model';
-import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { StatusVacina } from '../../core/model/enum/status-vacina.enum';
 
 // Card de criança já com tudo que a tela precisa pra renderizar — montado
@@ -53,7 +52,6 @@ interface CriancaComResumo {
     IonContent,
     IonFab,
     IonFabButton,
-    StatusBadgeComponent,
   ],
 })
 export class ListaCriancasPage {
@@ -107,7 +105,7 @@ export class ListaCriancasPage {
   );
 
   constructor() {
-    addIcons({ logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline });
+    addIcons({ logOutOutline, addOutline, megaphoneOutline, alertCircleOutline, chevronForwardOutline, personCircleOutline, peopleOutline, alertCircle });
     this.authService.responsavelLogado().subscribe((responsavel) => {
       this.ehAdmin = responsavel?.isAdmin === true;
     });

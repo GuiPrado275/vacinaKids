@@ -5,8 +5,6 @@
  * the entire app and not just one component. Additionally, this file can be
  * used as an entry point to import other CSS/Sass files to be included in the
  * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
 /* Core CSS required for Ionic components to work properly */
@@ -25,37 +23,23 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-/* @import '@ionic/angular/css/palettes/dark.system.css'; */
-/* Desafio exige uma paleta de marca fixa (ver theme/variables.scss).
-   Deixamos o dark mode automático do sistema desligado de propósito: ele
-   sobrescreveria justamente as cores obrigatórias do desafio quando o
-   usuário tiver dark mode ativo no celular/SO, o que fugiria da paleta
-   pedida sem trazer ganho real pro escopo do desafio. */
+/* Dark mode desativado intencionalmente — paleta de marca fixa (ver variables.scss) */
 
 /**
  * Identidade visual do app
  * -----------------------------------------------------
- * Quicksand: títulos/headers, mais arredondada e amigável — combina com
- * um app voltado a pais e crianças, sem parecer infantil demais.
- * Inter: corpo de texto e formulários, alta legibilidade em telas pequenas.
+ * Quicksand: títulos/headers, mais arredondada e amigável.
+ * Inter: corpo de texto e formulários, alta legibilidade.
  */
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
   --app-font-heading: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --app-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
-  font-family: var(--ion-font-family);
+  font-family: var(--app-font-body);
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -63,4 +47,54 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--app-font-heading);
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Toolbar global — identidade visual com marrom da marca
+   ============================================================ */
+ion-toolbar {
+  --background: #473C33;
+  --color: #ffffff;
+  --border-color: transparent;
+
+  ion-title {
+    color: #ffffff;
+    font-family: var(--app-font-heading);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  ion-back-button {
+    --color: #ffffff;
+  }
+
+  ion-button {
+    --color: rgba(255, 255, 255, 0.85);
+
+    &:hover {
+      --color: #ffffff;
+    }
+  }
+
+  ion-icon {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* ============================================================
+   Animação de entrada suave nos cards
+   ============================================================ */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeSlideUp 0.25s ease forwards;
 }

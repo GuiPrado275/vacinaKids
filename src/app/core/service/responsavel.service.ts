@@ -128,8 +128,13 @@ export class ResponsavelService {
     const perfil: ResponsavelPerfil = {
       nome: dados.nome,
       cpf: cpfNormalizado,
-      email: dados.email,
-      telefone: dados.telefone,
+      // Firestore não aceita `undefined` como valor de campo — por isso
+      // email/telefone só entram no objeto quando têm valor real. Sem
+      // isso, o setDoc abaixo lança erro sempre que o formulário não
+      // preenche um desses campos opcionais (ex.: telefone, que o
+      // formulário de cadastro nem coleta hoje).
+      ...(dados.email ? { email: dados.email } : {}),
+      ...(dados.telefone ? { telefone: dados.telefone } : {}),
     };
 
     const ref = doc(this.firestore, NOME_COLECAO, uid);

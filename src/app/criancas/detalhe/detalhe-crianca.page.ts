@@ -14,7 +14,7 @@ import {
   IonAlert,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline } from 'ionicons/icons';
+import { checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline, alertCircle, checkmarkCircle, searchOutline, giftOutline } from 'ionicons/icons';
 
 import { CriancaService } from '../../core/service/crianca.service';
 import { RegistroVacinalService, RegistroDetalhado, ResumoVacinal } from '../../core/service/registro-vacinal.service';
@@ -95,7 +95,7 @@ export class DetalheCriancaPage {
   );
 
   constructor() {
-    addIcons({ checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline });
+    addIcons({ checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline, alertCircle, checkmarkCircle, searchOutline, giftOutline });
   }
 
   // Rótulo amigável da faixa etária — "Ao nascer", "2 meses", "4 anos" —
@@ -135,6 +135,14 @@ export class DetalheCriancaPage {
       atrasadas: registros.filter((r) => r.status === StatusVacina.ATRASADA).length,
       futuras: registros.filter((r) => r.status === StatusVacina.FUTURA).length,
     };
+  }
+
+  // Angular não permite arrow functions dentro de bindings de template
+  // (ex.: "grupo.registros.every(r => ...)" direto no HTML), então essa
+  // checagem — usada pra marcar o ponto da timeline como concluído —
+  // precisa morar aqui como método em vez de inline na página .html.
+  protected grupoConcluido(grupo: GrupoIdade): boolean {
+    return grupo.registros.every((r) => r.status === StatusVacina.APLICADA);
   }
 
   // Pede confirmação antes de marcar como aplicada, porque é uma ação que

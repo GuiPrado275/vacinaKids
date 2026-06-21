@@ -3,7 +3,7 @@
 }
 
 .pagina {
-  padding: 0.5rem 1rem 3rem;
+  padding: 0.75rem 1rem 3rem;
   max-width: 42rem;
   margin: 0 auto;
 }
@@ -14,27 +14,31 @@
   gap: 0.85rem;
 }
 
+// ---------------------------------------------------------------------------
+// Card de campanha — visual rico, borda esquerda colorida quando ativa
+// ---------------------------------------------------------------------------
 .card-campanha {
   display: flex;
   gap: 0.85rem;
-  background: #ffffff;
-  border: 1px solid #efeae0;
+  background: var(--app-card-bg);
+  border: 1.5px solid var(--app-card-border);
   border-radius: 1rem;
   padding: 1rem;
   position: relative;
+  box-shadow: var(--app-card-shadow);
+  transition: box-shadow 0.15s, transform 0.15s;
 
   &--ativa {
-    border-color: color-mix(in srgb, var(--ion-color-secondary) 55%, white);
-    background: color-mix(in srgb, var(--ion-color-secondary) 10%, white);
+    border-left: 4px solid var(--ion-color-secondary);
+    background: color-mix(in srgb, var(--ion-color-secondary) 7%, white);
   }
 
-  // Só aplicado quando ehAdmin é true (ver template) — sinaliza que o
-  // card inteiro é clicável e leva pra edição, sem mudar o layout em si.
   &--clicavel {
     cursor: pointer;
 
     &:hover {
-      border-color: color-mix(in srgb, var(--ion-color-dark) 18%, #efeae0);
+      box-shadow: var(--app-card-shadow-hover);
+      transform: translateY(-1px);
     }
 
     &:focus-visible {
@@ -44,15 +48,12 @@
   }
 }
 
-// Botão discreto no canto do card, só visível pro admin — fica por cima
-// do conteúdo sem empurrar o layout normal do card (igual pedido: "o
-// layout das campanhas não pode mudar").
 .botao-remover {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 1.65rem;
-  height: 1.65rem;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border: none;
   border-radius: 50%;
   background: color-mix(in srgb, var(--ion-color-dark) 8%, white);
@@ -62,29 +63,31 @@
   justify-content: center;
   cursor: pointer;
   z-index: 1;
+  transition: background 0.15s, color 0.15s;
 
   ion-icon {
     font-size: 1rem;
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--ion-color-tertiary) 35%, white);
-    color: var(--ion-color-tertiary-contrast);
+    background: color-mix(in srgb, var(--ion-color-tertiary) 30%, white);
+    color: var(--ion-color-tertiary-shade);
   }
 }
 
 .card-campanha-icone {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
   background: var(--ion-color-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(254, 200, 104, 0.3);
 
   ion-icon {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: var(--ion-color-secondary-contrast);
   }
 }
@@ -92,6 +95,7 @@
 .card-campanha-corpo {
   flex: 1;
   min-width: 0;
+  padding-right: 1.5rem; /* espaço pro botão remover no admin */
 }
 
 .card-campanha-topo {
@@ -106,25 +110,26 @@
     margin: 0;
     color: var(--ion-color-dark);
     font-family: var(--app-font-heading);
+    font-weight: 700;
   }
 }
 
 .selo-ativa {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
   color: var(--ion-color-secondary-contrast);
   background: var(--ion-color-secondary);
-  padding: 0.15rem 0.5rem;
+  padding: 0.18rem 0.55rem;
   border-radius: 999px;
 }
 
 .card-campanha-descricao {
   font-size: 0.85rem;
   color: var(--ion-color-medium-shade);
-  line-height: 1.5;
-  margin: 0 0 0.6rem;
+  line-height: 1.55;
+  margin: 0 0 0.65rem;
 }
 
 .card-campanha-meta {
@@ -145,6 +150,9 @@
   }
 }
 
+// ---------------------------------------------------------------------------
+// Estado vazio
+// ---------------------------------------------------------------------------
 .estado-vazio {
   display: flex;
   flex-direction: column;
@@ -155,11 +163,22 @@
   color: var(--ion-color-medium-shade);
 
   ion-icon {
-    font-size: 2rem;
-    color: var(--ion-color-secondary);
+    font-size: 2.5rem;
+    color: var(--ion-color-secondary-shade);
+    opacity: 0.6;
   }
 
   p {
     margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Responsividade
+// ---------------------------------------------------------------------------
+@media (min-width: 768px) {
+  .pagina {
+    padding-top: 1rem;
   }
 }

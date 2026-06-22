@@ -62,7 +62,7 @@ export class LoginPage {
   protected aoDigitarCpf(valor: string): void {
     const numeros = normalizarCpf(valor).slice(0, 11);
     const formatado = numeros.length === 11 ? formatarCpf(numeros) : numeros;
-    this.form.controls.cpf.setValue(formatado, { emitEvent: false });
+    this.form.controls.cpf.setValue(formatado, { emitEvent: false, onlySelf: true });
   }
 
   protected alternarVisibilidadeSenha(): void {

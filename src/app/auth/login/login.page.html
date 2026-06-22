@@ -66,6 +66,7 @@
             [type]="senhaVisivel ? 'text' : 'password'"
             placeholder="••••••"
             formControlName="senha"
+            (keyup.enter)="entrar()"
             errorText="Informe sua senha"
             [class.ion-invalid]="form.controls.senha.touched && form.controls.senha.invalid"
             [class.ion-touched]="form.controls.senha.touched"

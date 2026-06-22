@@ -50,6 +50,23 @@
   margin: 0 0 2.5rem;
 }
 
+// Tiras coloridas — as 4 cores obrigatórias como assinatura visual
+.tiras-cor {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 16rem;
+
+  .tira {
+    flex: 1;
+    height: 0.6rem;
+    border-radius: 999px;
+  }
+
+  .tira--primary { background: var(--ion-color-primary); }
+  .tira--secondary { background: var(--ion-color-secondary); }
+  .tira--tertiary { background: var(--ion-color-tertiary); }
+  .tira--dark { background: var(--ion-color-dark); }
+}
 
 // ---------------------------------------------------------------------------
 // Cartão de login

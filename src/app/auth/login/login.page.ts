@@ -16,6 +16,9 @@ import { medkitOutline, eyeOutline, eyeOffOutline, personCircleOutline } from 'i
 import { AuthService } from '../../core/service/auth.service';
 import { normalizarCpf, formatarCpf } from '../../core/util/cpf.util';
 
+// Tela de entrada do app. De propósito NÃO tem header (ion-header) — é a
+// porta de entrada, antes de existir qualquer contexto de navegação por
+// trás, então um toolbar com botão de voltar não faria sentido aqui.
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -29,6 +32,11 @@ export class LoginPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  // Validação de formato fica no Validators.pattern (11 dígitos), a
+  // validação "de verdade" (dígito verificador) só roda no submit, contra
+  // o AuthService — não faz sentido duplicar a regra de validarCpf() aqui
+  // só pra mostrar erro mais cedo; o "CPF ou senha inválidos" do submit
+  // já cobre os dois casos (CPF malformado ou simplesmente não cadastrado).
   protected readonly form = this.fb.nonNullable.group({
     cpf: ['', [Validators.required]],
     senha: ['', [Validators.required]],
@@ -38,16 +46,19 @@ export class LoginPage {
   protected erroLogin: string | null = null;
   protected enviando = false;
 
-  // Mensagem de boas-vindas depois de um cadastro recém-feito (ver CadastroPage.cadastrar, que redireciona pra cá
-  // com ?cadastrado=1 em vez de logar automaticamente).
+  // Mensagem de boas-vindas depois de um cadastro recém-feito (ver
+  // CadastroPage.cadastrar, que redireciona pra cá com ?cadastrado=1 em
+  // vez de logar automaticamente).
   protected readonly cadastroRecente = this.route.snapshot.queryParamMap.get('cadastrado') === '1';
 
   constructor() {
     addIcons({ medkitOutline, eyeOutline, eyeOffOutline, personCircleOutline });
   }
 
-  // Formata o CPF visualmente enquanto a pessoa digita (000.000.000-00), mas quem decide se está válido de verdade é
-  // sempre o normalizarCpf no momento do submit
+  // Formata o CPF visualmente enquanto a pessoa digita (000.000.000-00),
+  // mas quem decide se está válido de verdade é sempre o normalizarCpf
+  // no momento do submit — o que importa pro login é só a sequência de
+  // números, nunca a pontuação.
   protected aoDigitarCpf(valor: string): void {
     const numeros = normalizarCpf(valor).slice(0, 11);
     const formatado = numeros.length === 11 ? formatarCpf(numeros) : numeros;
@@ -69,8 +80,10 @@ export class LoginPage {
     this.enviando = true;
     const { cpf, senha } = this.form.getRawValue();
 
-    // O AuthService já faz a comparação contra o Firebase Auth e lança erro com mensagem amigável em caso de falha
-    // (CPF não encontrado OU senha errada)
+    // O AuthService já faz a comparação contra o Firebase Auth e lança
+    // erro com mensagem amigável em caso de falha (CPF não encontrado OU
+    // senha errada) — de propósito não dizemos qual dos dois foi, pra não
+    // dar pista de quais CPFs já têm conta.
     try {
       await this.authService.login(cpf, senha);
       this.router.navigateByUrl('/criancas', { replaceUrl: true });

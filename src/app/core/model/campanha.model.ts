@@ -1,6 +1,3 @@
-// Campanha é independente das crianças cadastradas, não tem chave estrangeira obrigatória,
-// é informação pública (like: campanha de gripe).
-
 export interface Campanha {
   id: string;
   titulo: string;
@@ -14,10 +11,9 @@ export interface Campanha {
 export type CampanhaForm = Omit<Campanha, 'id'>;
 
 // Diz se a campanha está rolando hoje ou na data passada.
+// Comparação feita por string "YYYY-MM-DD" para evitar bug de fuso horário
 export function campanhaEstaAtiva(campanha: Pick<Campanha, 'dataInicio' | 'dataFim'>, dataReferencia: Date = new Date()): boolean {
-  const inicio = new Date(campanha.dataInicio);
-  const fim = new Date(campanha.dataFim);
-  const hoje = new Date(dataReferencia.toDateString());
+  const hoje = dataReferencia.toLocaleDateString('sv-SE'); // formato "YYYY-MM-DD" sempre
 
-  return hoje.getTime() >= inicio.getTime() && hoje.getTime() <= fim.getTime();
+  return hoje >= campanha.dataInicio && hoje <= campanha.dataFim;
 }

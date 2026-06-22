@@ -87,9 +87,10 @@ export class CadastroPage {
         senha,
       });
 
-      // De propósito NÃO loga automaticamente após o cadastro, a pessoa precisa entrar com as credenciais que acabou
-      // de criar, igual a maioria dos apps reais faz. O query param só liga a mensagem de boas-vindas na tela de login
-      // (ver LoginPage.cadastroRecente).
+      // De propósito NÃO loga automaticamente após o cadastro — a pessoa
+      // precisa entrar com as credenciais que acabou de criar, igual a
+      // maioria dos apps reais faz. O query param só liga a mensagem de
+      // boas-vindas na tela de login (ver LoginPage.cadastroRecente).
       this.router.navigate(['/login'], { queryParams: { cadastrado: '1' }, replaceUrl: true });
     } catch (e: any) {
       this.erroCadastro = e.message ?? 'Erro ao cadastrar. Tente novamente.';

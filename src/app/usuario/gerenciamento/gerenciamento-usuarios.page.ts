@@ -24,11 +24,7 @@ interface UsuarioComContagem {
   totalCriancas: number;
 }
 
-// Tela só do admin (rota protegida por adminGuard). Mostra todos os
-// responsáveis cadastrados no app — nome, CPF e quantas crianças cada um
-// tem — com opção de remover qualquer um deles. A própria conta admin
-// nunca aparece aqui (ver `usuariosOrdenados$`): gerenciar a própria
-// conta é coisa da tela "Minha conta" (EditarUsuarioPage), não desta.
+// Tela só do admin (rota protegida por adminGuard). Mostra todos os responsáveis cadastrados no app
 @Component({
   selector: 'app-gerenciamento-usuarios',
   standalone: true,
@@ -50,11 +46,6 @@ export class GerenciamentoUsuariosPage {
   private readonly responsavelService = inject(ResponsavelService);
   private readonly criancaService = inject(CriancaService);
 
-  // MIGRAÇÃO PRA FIREBASE: contarPorResponsavel agora é assíncrono
-  // (Promise, uma consulta real ao Firestore), então não dá mais pra
-  // chamar direto dentro de um .map() síncrono — usamos switchMap pra
-  // trocar pro resultado da Promise.all assim que a lista de
-  // responsáveis chegar (ou mudar, já que collectionData é em tempo real).
   protected readonly usuariosOrdenados$ = this.responsavelService.listar().pipe(
     switchMap((responsaveis) => {
       const naoAdmins = responsaveis.filter((responsavel) => !responsavel.isAdmin);

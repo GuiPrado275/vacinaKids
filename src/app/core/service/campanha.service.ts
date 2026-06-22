@@ -7,16 +7,6 @@ import { Campanha, CampanhaForm, campanhaEstaAtiva } from '../model/campanha.mod
 
 const NOME_COLECAO = 'campanhas';
 
-// Campanha é informação pública, não pertence a uma criança específica
-// (igual já está explicado no model Campanha.ts). Por isso esse service
-// é mais simples: não precisa filtrar por responsável nem cruzar com
-// registro vacinal.
-//
-// MIGRAÇÃO PRA FIREBASE: leitura é liberada pra qualquer pessoa
-// autenticada (ver firestore.rules) — todo responsável pode VER as
-// campanhas. Escrita (criar/editar/remover) é restrita a isAdmin == true
-// nas regras, então mesmo que alguém manipule o front-end pra esconder o
-// FAB de admin, o Firestore recusaria a escrita de qualquer forma.
 @Injectable({ providedIn: 'root' })
 export class CampanhaService {
   private readonly firestore = inject(Firestore);
@@ -26,9 +16,8 @@ export class CampanhaService {
     return collectionData(this.colecaoRef, { idField: 'id' }) as Observable<Campanha[]>;
   }
 
-  // Atende ao Cenário 3 do desafio: o responsável precisa ver as
-  // campanhas que estão rolando hoje, não as que já passaram ou que
-  // ainda vão começar (usa campanhaEstaAtiva, que já existe no model).
+  // Atende ao Cenário 3 do desafio: o responsável precisa ver as campanhas que estão rolando hoje, não as que já
+  // passaram ou que ainda vão começar (usa campanhaEstaAtiva, que já existe no model).
   listarAtivas(): Observable<Campanha[]> {
     return this.listar().pipe(map((campanhas) => campanhas.filter((campanha) => campanhaEstaAtiva(campanha))));
   }

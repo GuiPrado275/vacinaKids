@@ -69,13 +69,6 @@ export class CampanhasPage {
     )
   );
 
-  // MIGRAÇÃO PRA FIREBASE: propriedade síncrona simples (pro template não
-  // precisar de `| async` espalhado em vários lugares — class bindings,
-  // atributos, clique), mas mantida sincronizada via subscribe ao
-  // Observable de sessão. O authGuard já espera a sessão resolver antes
-  // de liberar essa rota, então no momento em que o componente é criado
-  // o valor inicial já reflete a sessão real — e continua acompanhando se
-  // ela mudar enquanto a pessoa está na tela (ex.: logout em outra aba).
   protected ehAdmin = this.authService.ehAdmin();
 
   protected campanhaParaRemover: Campanha | null = null;
@@ -103,9 +96,8 @@ export class CampanhasPage {
     this.router.navigate(['/campanhas', campanha.id, 'editar']);
   }
 
-  // Recebe o evento do clique pra impedir que ele "borbulhe" pro card e
-  // dispare abrirEdicao() junto — o botão de remover fica dentro do card
-  // clicável, então sem isso, tocar em remover também abriria a edição.
+  // Recebe o evento do clique pra impedir que ele "borbulhe" pro card e dispare abrirEdicao() junto,
+  // o botão de remover fica dentro do card clicável, então sem isso, tocar em remover também abriria a edição.
   protected pedirConfirmacaoRemover(campanha: Campanha, evento: Event): void {
     evento.stopPropagation();
     this.campanhaParaRemover = campanha;
@@ -122,9 +114,8 @@ export class CampanhasPage {
         await this.campanhaService.remover(campanha.id);
         await this.feedbackService.sucesso('Campanha removida.');
       } catch (erro) {
-        // Antes essa chamada não tinha nenhum try/catch — uma falha de
-        // rede ou de permissão virava um erro não tratado no console,
-        // sem nenhum aviso na tela.
+        // Antes essa chamada não tinha nenhum try/catch, uma falha de rede ou de permissão virava um erro
+        // não tratado no console, sem nenhum aviso na tela.
         await this.feedbackService.erro(
           erro instanceof Error ? erro.message : 'Não foi possível remover essa campanha.'
         );

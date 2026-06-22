@@ -23,9 +23,7 @@ import { StatusVacina } from '../../core/model/enum/status-vacina.enum';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { FeedbackService } from '../../shared/service/feedback.service';
 
-// Uma "faixa etária" da carteira, com as vacinas previstas pra essa idade
-// já agrupadas — é assim que a carteirinha física é organizada, e manter
-// essa metáfora ajuda o responsável a reconhecer o app de cara.
+// Uma "faixa etária" da carteira, com as vacinas previstas pra essa idade já agrupadas
 interface GrupoIdade {
   idadeRecomendadaMeses: number;
   rotulo: string;
@@ -68,12 +66,6 @@ export class DetalheCriancaPage {
   protected readonly StatusVacina = StatusVacina;
   protected registroParaConfirmar: RegistroDetalhado | null = null;
 
-  // MIGRAÇÃO PRA FIREBASE: usa buscarPorIdObservable (reativo, em tempo
-  // real) em vez de um buscarPorId síncrono — o documento da criança no
-  // Firestore pode demorar um instante pra chegar, e combineLatest junta
-  // ele com os registros vacinais assim que os dois estiverem disponíveis.
-  // Se a criança for removida nesse meio tempo (ou o id não existir),
-  // docData emite undefined e a tela mostra o estado vazio em vez de quebrar.
   protected readonly detalhe$: Observable<DetalheCrianca | null> = this.route.paramMap.pipe(
     map((params) => params.get('id')),
     switchMap((id) => {
@@ -100,9 +92,7 @@ export class DetalheCriancaPage {
     addIcons({ checkmarkOutline, arrowUndoOutline, calendarOutline, lockClosedOutline, alertCircle, checkmarkCircle, searchOutline, giftOutline });
   }
 
-  // Rótulo amigável da faixa etária — "Ao nascer", "2 meses", "4 anos" —
-  // em vez de mostrar o número cru de meses, que é como o dado é
-  // guardado mas não como uma pessoa pensa sobre a idade do próprio filho.
+  // Rótulo amigável da faixa etária — "Ao nascer", "2 meses", "4 anos"
   private rotularIdade(meses: number): string {
     if (meses === 0) return 'Ao nascer';
     if (meses < 24) return meses === 1 ? '1 mês' : `${meses} meses`;
@@ -139,22 +129,12 @@ export class DetalheCriancaPage {
     };
   }
 
-  // Angular não permite arrow functions dentro de bindings de template
-  // (ex.: "grupo.registros.every(r => ...)" direto no HTML), então essa
-  // checagem — usada pra marcar o ponto da timeline como concluído —
-  // precisa morar aqui como método em vez de inline na página .html.
   protected grupoConcluido(grupo: GrupoIdade): boolean {
     return grupo.registros.every((r) => r.status === StatusVacina.APLICADA);
   }
 
-  // Pede confirmação antes de marcar como aplicada, porque é uma ação que
-  // afeta um registro de saúde — não deve acontecer por toque acidental.
-  //
-  // Guarda extra contra vacina FUTURA: o botão já vem desabilitado nesse
-  // caso (ver template), mas não confiamos só nisso — se por algum motivo
-  // esse método for chamado mesmo assim, ele simplesmente não abre o
-  // diálogo. Uma vacina prevista pra daqui a anos não pode ser marcada
-  // como tomada fora de hora.
+  // Pede confirmação antes de marcar como aplicada, porque é uma ação que afeta um registro de saúde,
+  // não deve acontecer por toque acidental.
   protected pedirConfirmacaoAplicar(registro: RegistroDetalhado): void {
     if (registro.status === StatusVacina.FUTURA) {
       return;
@@ -162,9 +142,7 @@ export class DetalheCriancaPage {
     this.registroParaConfirmar = registro;
   }
 
-  // Único handler pro didDismiss do ion-alert: cobre tanto "Cancelar"
-  // quanto fechar clicando fora (backdrop), que também dispara esse
-  // evento com role indefinido — nesses casos só fechamos sem aplicar.
+  // Único handler pro didDismiss do ion-alert: cobre tanto "Cancelar" quanto fechar clicando fora (backdrop)
   protected async aoFecharConfirmacao(evento: CustomEvent): Promise<void> {
     const role = evento.detail?.role;
     const registro = this.registroParaConfirmar;
@@ -177,11 +155,6 @@ export class DetalheCriancaPage {
         await this.registroVacinalService.registrarAplicacao(registro.id, hoje);
         await this.feedbackService.sucesso(`${registro.vacina.nome} marcada como aplicada.`);
       } catch (erro) {
-        // Antes esse erro era simplesmente ignorado — a tela "não fazia
-        // nada" e a pessoa não sabia se precisava tentar de novo. Como o
-        // botão já vem desabilitado pra vacina futura, na prática isso só
-        // deve acontecer por falha de rede/permissão, mas mesmo assim
-        // merece um aviso, não silêncio.
         await this.feedbackService.erro(
           erro instanceof Error ? erro.message : 'Não foi possível marcar essa vacina como aplicada.'
         );

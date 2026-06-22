@@ -6,11 +6,6 @@ import { checkmarkCircle, time, alertCircle, calendar } from 'ionicons/icons';
 import { StatusVacina, STATUS_VACINA_CONFIG } from '../../../core/model/enum/status-vacina.enum';
 
 // Único lugar do app que transforma um StatusVacina em algo visual.
-// Qualquer tela que precise mostrar o status de uma vacina (lista de
-// crianças, carteira de vacinação, alertas) usa este componente, em vez
-// de cada tela decidir sozinha qual cor/ícone usar pra "atrasada" — isso
-// é o que garante que STATUS_VACINA_CONFIG continua sendo a única fonte
-// da verdade (ver comentário em theme/variables.scss sobre --ion-color-danger).
 @Component({
   selector: 'app-status-badge',
   standalone: true,

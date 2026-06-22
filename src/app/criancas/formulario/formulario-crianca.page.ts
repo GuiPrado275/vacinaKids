@@ -51,8 +51,7 @@ export class FormularioCriancaPage {
   private readonly criancaService = inject(CriancaService);
   private readonly router = inject(Router);
 
-  // Hoje, formatado pra limitar o ion-datetime: não faz sentido cadastrar
-  // uma criança com data de nascimento no futuro.
+  //Hoje, formatado pra limitar o ion-datetime: não faz sentido cadastrar uma criança com data de nascimento no futuro.
   protected readonly hojeIso = new Date().toISOString();
 
   protected readonly form = this.fb.nonNullable.group({
@@ -71,11 +70,7 @@ export class FormularioCriancaPage {
     this.form.controls.cpf.setValue(formatado, { emitEvent: false });
   }
 
-  // Validação de CPF de verdade (dígito verificador), além do required —
-  // mostrar isso já no formulário evita que a pessoa só descubra o erro
-  // depois de tentar salvar, no catch do cadastrar().
-  // Só verifica se tem 11 dígitos — não valida dígito verificador,
-  // pois a criança pode ter qualquer CPF válido em formato.
+  // Validação de CPF de verdade (dígito verificador)
   protected get cpfInvalido(): boolean {
     const valor = this.form.controls.cpf.value;
     if (!valor) return false;
@@ -84,13 +79,7 @@ export class FormularioCriancaPage {
   }
 
   protected aoSelecionarData(valor: string | string[] | null | undefined): void {
-    // ion-datetime sem `multiple` sempre emite string | null/undefined;
-    // o array só existe no tipo porque o mesmo evento é reaproveitado
-    // pro modo multi-seleção, que não usamos aqui — por isso o guard.
     if (!valor || Array.isArray(valor)) return;
-    // ion-datetime devolve um ISO completo com horário; guardamos só a
-    // parte de data (yyyy-MM-dd), que é o formato esperado por
-    // Crianca.dataNascimento (ver core/model/crianca.model.ts).
     this.form.controls.dataNascimento.setValue(valor.slice(0, 10));
   }
 
@@ -119,9 +108,8 @@ export class FormularioCriancaPage {
       const crianca = await this.criancaService.cadastrar({ nome, cpf, dataNascimento, sexo });
       this.router.navigate(['/criancas', crianca.id], { replaceUrl: true });
     } catch (erro) {
-      // CriancaService já lança mensagens prontas pra exibir (CPF
-      // duplicado, CPF inválido, não autenticado) — não precisamos
-      // reescrever essas mensagens aqui, só repassar pro usuário.
+      // CriancaService já lança mensagens prontas pra exibir (CPF duplicado, CPF inválido, não autenticado),
+      // não precisamos reescrever essas mensagens aqui, só repassar pro usuário.
       this.erroEnvio = erro instanceof Error ? erro.message : 'Não foi possível cadastrar a criança.';
     } finally {
       this.enviando = false;

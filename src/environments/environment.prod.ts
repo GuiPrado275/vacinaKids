@@ -1,8 +1,6 @@
 export const environment = {
   production: true,
-  // Mesmas chaves do environment.ts — o projeto Firebase é o mesmo em
-  // dev e produção nesse caso (um projeto único). Se um dia for separar
-  // ambientes (projeto de teste vs projeto real), troca só aqui.
+  // Mesmas chaves do environment.ts
   firebase: {
     apiKey: 'AIzaSyDL6elHWJ9ZIGoD9vqLw1mL0oGImV4fAHA',
     authDomain: 'vacina-kids-107ca.firebaseapp.com',

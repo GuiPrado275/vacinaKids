@@ -24,20 +24,10 @@ import { ResponsavelService } from '../../core/service/responsavel.service';
 import { CriancaService } from '../../core/service/crianca.service';
 import { Responsavel } from '../../core/model/responsavel.model';
 
-// Tela de "minha conta", disponível pra qualquer responsável logado
-// (admin incluso). Só permite mexer em e-mail e senha — CPF não muda
-// porque é a chave de login (mexer nele teria implicações maiores, tipo
-// duas contas colidindo, e não foi pedido). A opção de excluir a conta
-// fica aqui também, exceto pro admin (ver template e justificativa
+//Tela de "minha conta", disponível pra qualquer responsável logado (admin incluso). Só permite mexer em e-mail e senha,
+// CPF não muda porque é a chave de login (mexer nele teria implicações maiores, tipo duas contas colidindo,
+// e não foi pedido). A opção de excluir a conta fica aqui também, exceto pro admin (ver template e justificativa
 // abaixo em `podeExcluirConta`).
-//
-// MIGRAÇÃO PRA FIREBASE: trocar senha e excluir a conta são operações
-// "sensíveis" pro Firebase Auth — ele exige que a pessoa tenha feito
-// login recentemente, e se não tiver, rejeita com
-// 'auth/requires-recent-login'. Pra cobrir esse caso sem complicar demais
-// a experiência, pedimos a SENHA ATUAL nessas duas ações específicas (não
-// pra trocar só o e-mail de contato, que é um dado de perfil, não uma
-// credencial).
 @Component({
   selector: 'app-editar-usuario',
   standalone: true,
@@ -68,22 +58,17 @@ export class EditarUsuarioPage {
   private readonly router = inject(Router);
 
   // A conta logada agora — se por algum motivo não houver (não deveria
-  // acontecer, a rota já tem authGuard), a tela mostra estado vazio em
-  // vez de quebrar.
+  // acontecer, a rota já tem authGuard)
   private readonly responsavel: Responsavel | null = this.authService.obterResponsavelLogado();
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.email]],
     novaSenha: ['', [Validators.minLength(6)]],
     confirmarNovaSenha: [''],
-    // Só é exigida quando a pessoa de fato preenche novaSenha — ver
-    // validação manual em salvar().
     senhaAtualParaSenha: [''],
   });
 
-  // Formulário separado pra exclusão de conta: mantém a senha de
-  // confirmação isolada do formulário principal, pra trocar só o e-mail
-  // não ficar "contaminado" com um campo de senha que não tem nada a ver.
+  // Formulário separado pra exclusão de conta
   protected readonly formExclusao = this.fb.nonNullable.group({
     senhaAtual: ['', [Validators.required]],
   });
@@ -111,11 +96,8 @@ export class EditarUsuarioPage {
     return this.responsavel?.nome ?? '';
   }
 
-  // Conta admin nunca pode se autoexcluir — sem isso, o app ficaria sem
-  // nenhuma forma de gerenciar campanhas/usuários até alguém mexer
-  // diretamente no Firestore. A regra "de verdade" também existe no
-  // ResponsavelService.remover (defesa em profundidade), aqui é só pra
-  // nem mostrar o botão.
+  // Conta admin nunca pode se autoexcluir — sem isso, o app ficaria sem nenhuma forma de gerenciar campanhas/usuários
+  // até alguém mexer diretamente no Firestore.
   protected get podeExcluirConta(): boolean {
     return this.responsavel?.isAdmin !== true;
   }
@@ -153,11 +135,6 @@ export class EditarUsuarioPage {
 
     this.enviando = true;
     try {
-      // E-mail de contato (Firestore) e senha (Firebase Auth) são duas
-      // operações em sistemas diferentes — ver comentários nos services.
-      // Trocamos a senha PRIMEIRO (é a que pode falhar por senha atual
-      // errada); só se ela passar é que gravamos o e-mail, evitando
-      // salvar metade da edição se a outra metade falhar.
       if (novaSenha && senhaAtualParaSenha) {
         await this.authService.atualizarSenha(senhaAtualParaSenha, novaSenha);
       }
@@ -185,21 +162,8 @@ export class EditarUsuarioPage {
     this.confirmandoExclusao = false;
   }
 
-  // Exclui a conta E as crianças dela junto — orquestrado aqui (na tela),
-  // não dentro de um service chamando o outro, pelo mesmo motivo já
-  // documentado em ResponsavelService.remover (evita dependência
-  // circular entre os services).
-  //
-  // Ordem em 3 passos, nessa ordem exata:
-  //   1. confirmarSenhaAtual — só verifica a senha, não apaga nada ainda.
-  //      Se a senha estiver errada, para aqui: nenhum dado é tocado.
-  //   2. Apaga crianças + perfil no Firestore (a pessoa ainda está
-  //      autenticada nesse momento, então as regras de segurança
-  //      permitem ela apagar os PRÓPRIOS dados).
-  //   3. excluirConta — por último, remove a credencial do Firebase Auth.
-  // Se o passo 3 vier antes do 2, a pessoa perderia a autenticação e o
-  // Firestore recusaria a limpeza dos próprios dados (regras de
-  // segurança exigem estar logado pra apagar os próprios documentos).
+  // Exclui a conta e as crianças dela junto, orquestrado aqui (na tela), não dentro de um service chamando o outro,
+  // pelo mesmo motivo já documentado em ResponsavelService.remover (evita dependência circular entre os services).
   protected async confirmarExclusao(): Promise<void> {
     this.erroExclusao = null;
 

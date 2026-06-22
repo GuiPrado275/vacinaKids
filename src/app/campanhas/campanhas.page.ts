@@ -20,6 +20,7 @@ import { megaphoneOutline, calendarClearOutline, addOutline, closeOutline } from
 import { CampanhaService } from '../core/service/campanha.service';
 import { AuthService } from '../core/service/auth.service';
 import { Campanha, campanhaEstaAtiva } from '../core/model/campanha.model';
+import { FeedbackService } from '../shared/service/feedback.service';
 
 // Tela dedicada às campanhas (Cenário 3), separada do hub principal.
 // A lista de crianças já mostra um resumo das campanhas ativas, mas aqui
@@ -53,6 +54,7 @@ export class CampanhasPage {
   private readonly campanhaService = inject(CampanhaService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly feedbackService = inject(FeedbackService);
 
   protected readonly campanhasOrdenadas$ = this.campanhaService.listar().pipe(
     map((campanhas) =>
@@ -116,7 +118,17 @@ export class CampanhasPage {
     this.campanhaParaRemover = null;
 
     if (role === 'confirm' && campanha) {
-      await this.campanhaService.remover(campanha.id);
+      try {
+        await this.campanhaService.remover(campanha.id);
+        await this.feedbackService.sucesso('Campanha removida.');
+      } catch (erro) {
+        // Antes essa chamada não tinha nenhum try/catch — uma falha de
+        // rede ou de permissão virava um erro não tratado no console,
+        // sem nenhum aviso na tela.
+        await this.feedbackService.erro(
+          erro instanceof Error ? erro.message : 'Não foi possível remover essa campanha.'
+        );
+      }
     }
   }
 }

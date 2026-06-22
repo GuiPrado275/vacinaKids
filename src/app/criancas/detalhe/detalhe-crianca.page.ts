@@ -21,6 +21,7 @@ import { RegistroVacinalService, RegistroDetalhado, ResumoVacinal } from '../../
 import { Crianca, calcularIdadeEmMeses } from '../../core/model/crianca.model';
 import { StatusVacina } from '../../core/model/enum/status-vacina.enum';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { FeedbackService } from '../../shared/service/feedback.service';
 
 // Uma "faixa etária" da carteira, com as vacinas previstas pra essa idade
 // já agrupadas — é assim que a carteirinha física é organizada, e manter
@@ -62,6 +63,7 @@ export class DetalheCriancaPage {
   private readonly route = inject(ActivatedRoute);
   private readonly criancaService = inject(CriancaService);
   private readonly registroVacinalService = inject(RegistroVacinalService);
+  private readonly feedbackService = inject(FeedbackService);
 
   protected readonly StatusVacina = StatusVacina;
   protected registroParaConfirmar: RegistroDetalhado | null = null;
@@ -173,16 +175,29 @@ export class DetalheCriancaPage {
       const hoje = new Date().toISOString().slice(0, 10);
       try {
         await this.registroVacinalService.registrarAplicacao(registro.id, hoje);
-      } catch {
-        // Na prática não deve acontecer (o botão já vem desabilitado pra
-        // vacina futura), mas se acontecer, simplesmente não aplica —
-        // sem isso quebrar a tela.
+        await this.feedbackService.sucesso(`${registro.vacina.nome} marcada como aplicada.`);
+      } catch (erro) {
+        // Antes esse erro era simplesmente ignorado — a tela "não fazia
+        // nada" e a pessoa não sabia se precisava tentar de novo. Como o
+        // botão já vem desabilitado pra vacina futura, na prática isso só
+        // deve acontecer por falha de rede/permissão, mas mesmo assim
+        // merece um aviso, não silêncio.
+        await this.feedbackService.erro(
+          erro instanceof Error ? erro.message : 'Não foi possível marcar essa vacina como aplicada.'
+        );
       }
     }
   }
 
   protected async desfazerAplicacao(registro: RegistroDetalhado): Promise<void> {
-    await this.registroVacinalService.desfazerAplicacao(registro.id);
+    try {
+      await this.registroVacinalService.desfazerAplicacao(registro.id);
+      await this.feedbackService.sucesso(`Aplicação de ${registro.vacina.nome} desfeita.`);
+    } catch (erro) {
+      await this.feedbackService.erro(
+        erro instanceof Error ? erro.message : 'Não foi possível desfazer essa aplicação.'
+      );
+    }
   }
 
   protected formatarData(data: string | null): string {

@@ -186,5 +186,3 @@ As permissões são reforçadas **no servidor**, não apenas na interface:
 - Campanhas → qualquer usuário autenticado pode ler; apenas admin pode criar, editar ou remover
 
 ---
-
-Desenvolvido como desafio técnico de estágio para a **Cyrrus**.

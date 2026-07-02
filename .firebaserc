@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "vacina-kids-107ca"
-  }
+  },
+  "targets": {
+    "vacina-kids-107ca": {
+      "hosting": {
+        "site-novo": [
+          "carteiravacinakids"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
